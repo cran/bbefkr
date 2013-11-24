@@ -3,5 +3,11 @@ bayMCMC_np_global,
 bayMCMC_np_local,
 bayMCMC_semi_global,
 bayMCMC_semi_local,
-funopare.kernel
+funopare.kernel,
+SIF,
+error.den,
+error.denadj,
+loglikelihood_admkr,
+logpriors_admkr,
+logdensity_admkr
 )

@@ -1,6 +1,6 @@
 bayMCMC_np_global <-
 function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=0.44, mutsizp=1.0, errorsizp=1.0, prior_alpha=1.0, prior_beta=0.05, 
-			err_int = c(-5,5), err_ngrid=10001, num_batch=20, step=10, alpha=0.95, ...)
+			err_int = c(-10,10), err_ngrid=10001, num_batch=20, step=10, alpha=0.95, ...)
 {	
 	data_y <- as.vector(data_y)	
 	 if (is.vector(data_xnew)) 
@@ -12,15 +12,6 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=
 	
 	SPECURVES1 = data_x
 	Specresp1 = data_y
-	
-	# prior density IG(1.0,0.05)
-
-	logpriorh2 = function(h2)
-	{
-		logp = prior_alpha * log(prior_beta) - lgamma(prior_alpha)
-		logp = logp - 1.0*(prior_alpha + 1.0)*log(h2) - prior_beta/h2	
-		return(logp)
-	}
 	
 	# negative log posterior
 	cost = function(xp)
@@ -50,7 +41,7 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=
 			priorJacobi = vector(,2)
 			for(i in 1:2)
 			{
-				priorJacobi[i] = xp[i] + logpriorh2((exp(xp[i]))^2)
+				priorJacobi[i] = xp[i] + logpriorh2((exp(xp[i]))^2, prior_alpha=prior_alpha, prior_beta=prior_beta)
 			}
 			result = sumlogf + sum(priorJacobi)
 		}
@@ -179,122 +170,10 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=
 	# obtaining the bandwidth of regression and residuals,
 	kernelestfinal = funopare.kernel(Specresp1, SPECURVES1, data_xnew, bandwidth = exp(xpfinalres[1]), ...)
 	residfinal = Specresp1 - kernelestfinal$Estimated.values
-	SIF <- function(BAND_MATRIX, NUM_ITERATIONS, NUM_BATCH) 
-	{
-        	size_batch = NUM_ITERATIONS/NUM_BATCH
-	        h_mean <- colMeans(BAND_MATRIX)
-	        h_mean <-  matrix(rep(h_mean,times= dim(BAND_MATRIX)[1]), nrow = dim(BAND_MATRIX)[1], 
-					ncol = dim(BAND_MATRIX)[2], byrow = TRUE)
-	        sigma_square_tilde <- (1/(NUM_ITERATIONS - 1)) * colSums((BAND_MATRIX - h_mean)^2) 
-	        sum_par_mean = rep(0, times = dim(BAND_MATRIX)[2])        
-        	for (i in 1: NUM_BATCH)
-	        {                
-        	        sum_par_mean = sum_par_mean + (colMeans(BAND_MATRIX[((i-1) * size_batch + 1):(size_batch * i),]) - h_mean[1,] )^2            
-	        }
-        	sigma_square_hat = size_batch/(NUM_BATCH - 1) * sum_par_mean
-	        var_h = sqrt(sum_par_mean/(NUM_BATCH^2 - NUM_BATCH))
-	        return(list(batch_se = round(sqrt(sigma_square_hat),4), 
-			total_se = round(sqrt(sigma_square_tilde),4), 
-			SIF = round(sigma_square_hat/sigma_square_tilde,4), VAR_H = round(var_h,4)))
-	}
 	sif_value = SIF(exp(xpM[,1:(ncol(xpM)-1)]), M, num_batch)
-
-	logpriors_admkr = function(h2)
-	{
-		logf = 0
-		dm = length(h2)
-		for(i in 1:(dm-1))
-		{
-			logf = logf + logpriorh2(h2[i])
-		}
-		logf = logf + logpriorh2(h2[dm])
-		return(logf)
-	}
-
-	loglikelihood_admkr = function(h, resid)
-	{
-	    dm = length(h)
-	    b = h[dm]
-	    epsilon = scale(resid)
-	    std = sd(resid)
-	    cont = (2.0 * pi)^(-0.5)
-	    logf = vector(,length(residfinal))
-	    for(i in 1:length(residfinal))
-	    {
-        	temp = epsilon[i] - epsilon[-i]
-	        res = sum(cont * exp(-0.5 * ((temp/b)^2))/b)
-        	logf[i] = log(res/length(temp)/std)
-    	    }
-	    sumlogf = sum(logf)
-	    return(sumlogf)
-	}
-
-	logdensity_admkr = function(tau2, cpost)
-	{
-	    dm = ncol(cpost)
-	    len = nrow(cpost)
-	    band = vector(, dm)
-	    for(j in 1:dm)
-	    {
-        	temp = tem2 = 0
-	        for(i in 1:len)
-	        {
-        	    temp = temp + cpost[i,j]
-	            tem2 = tem2 + cpost[i,j]^2
-	        }
-	        sigma = sqrt(tem2/len - (temp/len)^2)
-	        temp = exp(1.0/(dm + 4) * log(4/(dm + 2)))
-	        band[j] = temp * sigma * exp(-1/(dm + 4) * log(len))
-	    }
-	    hprod = prod(band)
-	    cont = exp(-0.5 * (dm) * log(2.0 * pi))
-	    xsum = 0
-	    for(i in 1:len)
-	    {
-        	temp = 0
-	        for(j in 1:dm)
-	        {
-	            tem2 = (tau2[j] - cpost[i,j])/band[j]
-         	   temp = temp + tem2^2
-	        }
-	        xsum = xsum + cont * exp(-0.5 * temp)/hprod
-	    }
-	    hatf = log(xsum/len)
-	    return(hatf)
-	}
-
         mlikeres = loglikelihood_admkr(exp(xpfinalres[1:2]), residfinal) +
-			 logpriors_admkr(exp(xpfinalres[1:2])^2) - 
+			 logpriors_admkr(exp(xpfinalres[1:2])^2, prior_alpha=prior_alpha, prior_beta=prior_beta) - 
 			logdensity_admkr(colMeans(xpMsquare[,1:2]), cpost[,1:2])
-
-
-	# kernel error density estimation
-	admkr.den = function(band, eps, res.data)
-	{
-	    res = as.numeric(res.data)
-	    data.num = length(res)
-	    std.res = sd(res)
-	    epsilon = (res - mean(res))/std.res
-	    eps.std = (eps - mean(res))/std.res
-
-	    tem  = (eps.std - epsilon)/band
-	    tem2 = dnorm(tem)/band
-
-	    hatf = (sum(tem2)/data.num)/std.res
-	    return(hatf)
-	}
-	admkr.cdf = function(band, eps, res.data)
-	{
-		res = as.numeric(res.data)
-		data.num = length(res)
-		std.res = sd(res)
-		epsilon = (res - mean(res))/std.res
-		eps.std = (eps - mean(res))/std.res
-		tem = (eps.std - epsilon)/band
-		tem2 = pnorm(tem)
-		hatf = sum(tem2)/data.num
-		return(hatf)
-	}
 	
 	# approximate ISE	
 	y = seq(err_int[1], err_int[2], by = diff(err_int)/(err_ngrid-1))
@@ -302,8 +181,8 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=
 	for(i in 1:(err_ngrid-1))
 	{
 		eps = y[i]
-		fore.den.mkr[i] = admkr.den(exp(xpfinalres[2]), eps, residfinal)
-		fore.cdf.mkr[i] = admkr.cdf(exp(xpfinalres[2]), eps, residfinal)
+		fore.den.mkr[i] = error.den(exp(xpfinalres[2]), eps, residfinal)
+		fore.cdf.mkr[i] = error.cdf(exp(xpfinalres[2]), eps, residfinal)
 	}
 	if (twodatasets) 
 	{

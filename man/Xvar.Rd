@@ -11,12 +11,12 @@ Simulated real-valued predictors in the semi-functional partial linear model. It
 }
 \usage{data(Xvar)}
 \source{
-H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, Computational Statistics, in press.
+H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, \emph{Computational Statistics}, in press.
 }
 \references{
-H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, Computational Statistics, in press.
+H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, \emph{Computational Statistics}, in press.
 
-H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, Computational Statistics and Data Analysis, 67, 185-198.
+H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, \emph{Computational Statistics and Data Analysis}, \bold{67}, 185-198.
 }
 \examples{
 data(Xvar)

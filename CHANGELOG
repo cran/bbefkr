@@ -1,0 +1,8 @@
+v2.0
+
+1. Update the vignette
+2. Change the the range of grid points for the error density to make sure that the cdf is from 0 to 1
+3. Add SIF function to check the convergence of the MCMC
+4. Add admkr.den, admkr.cdf, admkr.denadj, admkr.cdfadj functions for computing kernel-form error density
+5. Add logpriorh2 function for computing prior density of squared bandwidths
+6. Add logdensity_admkr, logpriors_admkr, loglikelihood_admkr functions for computing log marginal likelihood

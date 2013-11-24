@@ -24,19 +24,28 @@ For each unit, we observe one spectrometric curve which corresponds to the absor
 Nonparametric Functional Data Analysis website at http://www.lsp.ups-tlse.fr/staph/npfda/
 }
 \references{
-C. Goutis (1998) "Second-derivative functional regression with applications to near infra-red spectroscopy",Journal of the Royal Statistical Society: Series B, 60(1), 103-114.
+C. Goutis (1998) "Second-derivative functional regression with applications to near infra-red spectroscopy",
+\emph{Journal of the Royal Statistical Society: Series B}, \bold{60}(1), 103-114.
 
-F. Ferraty and P. Vieu (2002) "The functional nonparametric model and application to spectrometricdata", Computational Statistics, 17(4), 545-564.
+F. Ferraty and P. Vieu (2002) "The functional nonparametric model and application to spectrometric
+data", \emph{Computational Statistics}, \bold{17}(4), 545-564.
 
-F. Ferraty and P. Vieu (2003) "Curve discrimination: A nonparametric functional approach", ComputationalStatistics and Data Analysis, 44(1-2), 161-173.
+F. Ferraty and P. Vieu (2003) "Curve discrimination: A nonparametric functional approach", \emph{Computational
+Statistics and Data Analysis}, \bold{44}(1-2), 161-173.
 
-F. Ferraty and P. Vieu (2003) "Functional nonparametric statistics: A double infinite dimensionalframework", Recent advances and trends in nonparametric statistics, Ed M. G. Akritas and D. N.Politis, Amsterdam, The Netherlands, 61-76.
+F. Ferraty and P. Vieu (2003) "Functional nonparametric statistics: A double infinite dimensional
+framework", Recent advances and trends in nonparametric statistics, Ed M. G. Akritas and D. N.
+Politis, Amsterdam, The Netherlands, 61-76.
 
-F. Rossi and N. Delannay and B. Conan-Guez and M. Verleysen (2005) "Representation of functionaldata in neural networks", Neurocomputing, 64, 183-210.
+F. Ferraty, I. Van Keilegom, P. Vieu (2010) "On the validity of the bootstrap in non-parametric functional regression", \emph{Scandinavian Journal of Statistics}, \bold{37}, 286-306.
+
+F. Rossi and N. Delannay and B. Conan-Guez and M. Verleysen (2005) "Representation of functional
+data in neural networks", \emph{Neurocomputing}, \bold{64}, 183-210.
 
 F. Ferraty and P. Vieu (2007) Nonparametric functional data analysis, New York: Springer.
 
-H. Matsui and Y. Araki and S. Konishi (2008) "Multivariate regression modeling for functionaldata", Journal of Data Science, 6, 313-331.
+H. Matsui and Y. Araki and S. Konishi (2008) "Multivariate regression modeling for functional
+data", \emph{Journal of Data Science}, \bold{6}, 313-331.
 }
 \examples{
 data(specurves)

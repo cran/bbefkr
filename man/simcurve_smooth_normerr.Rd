@@ -25,12 +25,14 @@ Simulated data
 	Having defined functional curves, we then construct the regression mean function \eqn{\tau=10\times (a_i^2-b_i^2)}. Then the response variable is obtained by adding the regression mean function with a set of errors generated from a standard normal distribution
 }
 \source{
-H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, Computational Statistics and Data Analysis, 67, 185-198.
+H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, \emph{Computational Statistics and Data Analysis}, \bold{67}, 185-198.
 }
 \references{
-H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, Computational Statistics, in press.
+H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, \emph{Computational Statistics}, in press.
 
-H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, Computational Statistics and Data Analysis, 67, 185-198.
+H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, \emph{Computational Statistics and Data Analysis}, \bold{67}, 185-198.
+
+F. Ferraty, I. Van Keilegom, P. Vieu (2010) On the validity of the bootstrap in non-parametric functional regression, \emph{Scandinavian Journal of Statistics}, \bold{37}(2), 286-306.
 }
 \examples{
 data(simcurve_normerr)

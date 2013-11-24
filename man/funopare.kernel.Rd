@@ -32,18 +32,17 @@ where \eqn{K(\cdot)} is a kernel function which integrates to one, it has contin
 \item{Mse}{In-sample mean squared error}
 }
 \references{
-H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, Computational Statistics, in press.
+H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, \emph{Computational Statistics}, in press.
 
-H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, Computational Statistics and Data Analysis, 67, 185-198.
+H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, \emph{Computational Statistics and Data Analysis}, \bold{67}, 185-198.
 
-X. Zhang and R. D. Brooks and M. L. King (2009) A Bayesian approach to bandwidth selection for multivariate kernel regression with an application to state-
-price density estimation, Journal of Econometrics, 153, 21-32.
+X. Zhang and R. D. Brooks and M. L. King (2009) A Bayesian approach to bandwidth selection for multivariate kernel regression with an application to state-price density estimation, \emph{Journal of Econometrics}, \bold{153}, 21-32.
 
-F. Ferraty, I. Van Keilegom  and P. Vieu (2010) On the validity of the bootstrap in non-parametric functional regression, Scandinavian Journal of Statistics, 37, 286-306.
+F. Ferraty, I. Van Keilegom  and P. Vieu (2010) On the validity of the bootstrap in non-parametric functional regression, \emph{Scandinavian Journal of Statistics}, \bold{37}, 286-306.
 
 F. Ferraty and P. Vieu (2006) Nonparametric Functional Data Analysis: Theory and Practice, Springer, New York.
 
-F. Ferraty and P. Vieu (2002) The functional nonparametric model and application to spectrometric data, Computational Statistics, 17, 545-564.
+F. Ferraty and P. Vieu (2002) The functional nonparametric model and application to spectrometric data, \emph{Computational Statistics}, \bold{17}, 545-564.
 }
 \author{
 Han Lin Shang

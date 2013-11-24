@@ -9,8 +9,9 @@ Estimate the bandwidths in both the regression function containing real-valued a
 \usage{
 bayMCMC_semi_local(data_x, data_y, data_xnew, Xvar, Xvarpred, warm = 1000, M = 1000,
 	mutprob = 0.44, errorprob = 0.44, epsilonprob = 0.44, mutsizp = 1, errorsizp = 1, 
-		epsilonsizp = 1, prior_alpha = 1, prior_beta = 0.05, err_int = c(-5, 5), 
-			err_ngrid = 10001, num_batch = 20, step = 10, alpha, ...)
+		epsilonsizp = 1, prior_alpha = 1, prior_beta = 0.05, 
+			err_int = c(-10, 10), err_ngrid = 10001, num_batch = 20, 
+				step = 10, alpha, ...)
 }
 \arguments{
   \item{data_x}{An (n by p) matrix of discretised data points of functional curves}
@@ -19,7 +20,7 @@ bayMCMC_semi_local(data_x, data_y, data_xnew, Xvar, Xvarpred, warm = 1000, M = 1
   \item{Xvar}{Real-valued predictors. For example, n by 2 matrix}
   \item{Xvarpred}{Real-valued predictors for prediction.}
   \item{warm}{Number of iterations for the burn-in period}
-  \item{M}{Number of iterations for the MCMC}
+  \item{M}{Number of iterations for the Markov chain Monte Carlo (MCMC)}
   \item{mutprob}{Optimal acceptance rate of the random-walk Metropolis algorithm for sampling the bandwidth in the regression function}
   \item{errorprob}{Optimal acceptance rate of the random-walk Metropolis algorithm for sampling the bandwidth in the kernel-form error density}
   \item{epsilonprob}{Optimal acceptance rate of the random-walk Metropolis algorithm for sampling the bandwidth adjustment factor in the kernel-from error density}
@@ -32,11 +33,11 @@ bayMCMC_semi_local(data_x, data_y, data_xnew, Xvar, Xvarpred, warm = 1000, M = 1
   \item{err_ngrid}{Number of the error-density grid points}
   \item{num_batch}{Number of batches to assess the convergence of the MCMC}
   \item{step}{Thinning parameter. For example, when \code{step=10}, it keeps every 10th iteration of the MCMC output}
-  \item{alpha}{The nominal coverage probability of the prediction interval}
-  \item{\dots}{Other arguments}
+  \item{alpha}{The nominal coverage probability of the prediction interval, customarily 95 percent}
+  \item{\dots}{Other arguments used to define semi-metric. For a set of smoothed functional data, the semi-metric based on derivative is suggested. For a set of rough functional data, the semi-metric based on the functional principal component analysis is suggested}
 }
 \details{
-It estimates the bandwidths in the regression function and kernel-form error density in the context of semi-functional partial linear model with homoscedastic errors. It performs better than the functional cross validation in terms of estimation accuracy, since the latter one does not utilise the information about the unknown error density
+The Bayesian method estimates the bandwidths in the regression function and kernel-form error density in the context of semi-functional partial linear model with homoscedastic errors. It performs better than the functional cross validation in terms of estimation accuracy, since the latter one does not utilise the information about the unknown error density
 }
 \value{
 \item{xpfinalres}{Estimated bandwidths}
@@ -47,23 +48,23 @@ It estimates the bandwidths in the regression function and kernel-form error den
 \item{acceptnwMCMC}{Acceptance rate for sampling bandwidth in the regression function}
 \item{accepterroMCMC}{Acceptance rate for sampling bandwidth in the kernel-form error density}
 \item{acceptepsilonMCMC}{Acceptance rate for sampling bandwidth adjustment factor in the kernel-form error density}
-\item{fore.den.mkr}{Estimated probability density of the error}
-\item{fore.cdf.mkr}{Estimated cumulative error density of the error}
+\item{fore.den.mkr}{Estimated probability density function of the error}
+\item{fore.cdf.mkr}{Estimated cumulative density function of the error}
 \item{point forecast}{Predicted response}
 \item{PI}{Prediction interval of response}
 }
 \references{
-H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, Computational Statistics, in press.
+H. L. Shang (2013) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density, \emph{Computational Statistics}, in press.
 
-H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, Computational Statistics and Data Analysis, 67, 185-198.
+H. L. Shang (2013) Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density, \emph{Computational Statistics and Data Analysis}, \bold{67}, 185-198.
 
-X. Zhang and R. D. Brooks and M. L. King (2009) A Bayesian approach to bandwidth selection for multivariate kernel regression with an application to state-price density estimation, Journal of Econometrics, 153, 21-32.
+X. Zhang and R. D. Brooks and M. L. King (2009) A Bayesian approach to bandwidth selection for multivariate kernel regression with an application to state-price density estimation, \emph{Journal of Econometrics}, \bold{153}, 21-32.
 
-F. Ferraty, I. Van Keilegom  and P. Vieu (2010) On the validity of the bootstrap in non-parametric functional regression, Scandinavian Journal of Statistics, 37, 286-306.
+F. Ferraty, I. Van Keilegom  and P. Vieu (2010) On the validity of the bootstrap in non-parametric functional regression, \emph{Scandinavian Journal of Statistics}, \bold{37}, 286-306.
 
-R. Meyer and J. Yu (2000) BUGS for a Bayesian analysis of stochastic volatility models, Econometircs Journal, 3(2), 198-215.
+R. Meyer and J. Yu (2000) BUGS for a Bayesian analysis of stochastic volatility models, \emph{Econometircs Journal}, \bold{3}(2), 198-215.
 
-S. Chib (1995) Marginal likelihood from the Gibbs output, Journal of the American Statistical Association, 90(432), 1313-1321.
+S. Chib (1995) Marginal likelihood from the Gibbs output, \emph{Journal of the American Statistical Association}, \bold{90}(432), 1313-1321.
 }
 \author{
 Han Lin Shang
@@ -74,12 +75,5 @@ It can be time-consuming when the sample size is large, say above 250
 
 \seealso{
  \code{\link{bayMCMC_np_global}},  \code{\link{bayMCMC_np_local}}, \code{\link{bayMCMC_semi_global}}
-}
-\examples{
-htm = proc.time()
-dum = bayMCMC_semi_local(data_x = simcurve_smooth_normerr, data_y = simresp_semi_normerr, 
-	data_xnew = simcurve_smooth_normerr, Xvar = Xvar, warm = 10, M = 10, range.grid=c(0,pi),
-	q=2, nknot=20, num_batch=2, step=2)
-proc.time() - htm	
 }
 \keyword{method}
