@@ -1,5 +1,6 @@
-\name{loglikelihood_admkr}
-\alias{loglikelihood_admkr}
+\name{loglikelihood_global_admkr}
+\alias{loglikelihood_global_admkr}
+\alias{loglikelihood_local_admkr}
 \title{
 Compute the marginal likelihood using Chib's (1995) method
 }
@@ -7,7 +8,7 @@ Compute the marginal likelihood using Chib's (1995) method
 The log marginal likelihood can be computed as the log likelihood + log prior - log posterior. The latter one can be estimated from the MCMC.
 }
 \usage{
-loglikelihood_admkr(h, resid)
+loglikelihood_global_admkr(h, resid)
 }
 \arguments{
   \item{h}{Estimated bandwidth}

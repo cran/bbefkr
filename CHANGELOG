@@ -1,3 +1,10 @@
+v 3.0
+
+1. Update the prediction intervals in bayMCMC_np_global, bayMCMC_np_local, bayMCMC_semi_global, bayMCMC_semi_local
+2. Add the loglikelihood, logprior and logdensity as outputs in all four functions
+3. Add the loglikelihood_global_admkr and loglikelihood_local_admkr functions
+
+
 v2.0
 
 1. Update the vignette

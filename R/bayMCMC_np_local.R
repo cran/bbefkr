@@ -206,8 +206,11 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000, mutprob=0.44, errorprob=0
 	kernelestfinal = funopare.kernel(Specresp1, SPECURVES1, data_xnew, bandwidth = exp(xpfinalres[1]), ...)
 	residfinal = Specresp1 - kernelestfinal$Estimated.values
 	sif_value = SIF(exp(xpM[,1:(ncol(xpM)-1)]), M, num_batch)
-    mlikeres = loglikelihood_admkr(exp(xpfinalres[1:3]), residfinal) + logpriors_admkr(exp(xpfinalres[1:3])^2, prior_alpha=prior_alpha, prior_beta=prior_beta) - logdensity_admkr(colMeans(xpMsquare[,1:3]), cpost[,1:3])
-			
+    log_likelihood_Chib = loglikelihood_local_admkr(exp(xpfinalres[1:3]), residfinal)
+    log_prior_Chib = logpriors_admkr(exp(xpfinalres[1:3])^2, prior_alpha=prior_alpha, prior_beta=prior_beta)
+    log_density_Chib = logdensity_admkr(colMeans(xpMsquare[,1:3]), cpost[,1:3])
+    mlikeres =  log_likelihood_Chib + log_prior_Chib - log_density_Chib
+
 	# approximate ISE	
 	y = seq(err_int[1], err_int[2], by = diff(err_int)/(err_ngrid-1))
 	fore.den.mkr = fore.cdf.mkr = vector(,length(y))
@@ -220,7 +223,9 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000, mutprob=0.44, errorprob=0
 	if(twodatasets)
 	{
 		pointforecast = kernelestfinal$Predicted.values
-		PI = pointforecast + c(y[which.min(abs(fore.cdf.mkr - (1-alpha)/2))], y[which.min(abs(fore.cdf.mkr - (1+alpha)/2))])
+        lb = pointforecast + y[which.min(abs(fore.cdf.mkr - (1-alpha)/2))]
+        ub = pointforecast + y[which.min(abs(fore.cdf.mkr - (1+alpha)/2))]
+        PI = cbind(lb, ub)
 		return(list(xpfinalres = c(exp(xpfinalres[1:2]), exp(xpfinalres[3])/(1.0+exp(xpfinalres[3]))), mhat = kernelestfinal$Estimated.values, sif_value = sif_value, 
 			mlikeres = mlikeres, acceptnwMCMC = mean(acceptnwMCMC), accepterroMCMC = mean(accepterroMCMC), 
 			acceptepsilonMCMC = mean(acceptepsilonMCMC), fore.den.mkr = fore.den.mkr, fore.cdf.mkr = fore.cdf.mkr,
@@ -229,7 +234,7 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000, mutprob=0.44, errorprob=0
 	else
 	{
 		return(list(xpfinalres = c(exp(xpfinalres[1:2]), exp(xpfinalres[3])/(1.0+exp(xpfinalres[3]))), mhat = kernelestfinal$Estimated.values, sif_value = sif_value, 
-			mlikeres = mlikeres,
+			mlikeres = mlikeres, log_likelihood_Chib = log_likelihood_Chib, log_prior_Chib = log_prior_Chib, log_density_Chib = log_density_Chib,
 			acceptnwMCMC = mean(acceptnwMCMC), accepterroMCMC = mean(accepterroMCMC), 
 			acceptepsilonMCMC = mean(acceptepsilonMCMC),
 			fore.den.mkr = fore.den.mkr, fore.cdf.mkr = fore.cdf.mkr))

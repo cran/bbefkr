@@ -1,9 +1,6 @@
-loglikelihood_admkr <-
-function(h, resid)
+loglikelihood_global_admkr <- function(h, resid)
 {
-    dm = length(h)
     b = h[2]
-    badj = h[3]    
     epsilon = scale(resid)
     std = sd(resid)
     cont = (2.0*pi)^(-0.5)
@@ -11,8 +8,8 @@ function(h, resid)
     for(i in 1:length(resid))
     {
         temp = epsilon[i] - epsilon[-i]
-        res = sum(cont*exp(-0.5*((temp/(b*(1+badj*abs(epsilon[-i]))))^2))/(b*(1+badj*abs(epsilon[-i]))))
+        res = sum(cont * exp(-0.5*((temp/b)^2))/b)
         logf[i] = log(res/length(temp)/std)
     }
-    return(sum(logf))			
+    return(sum(logf))
 }

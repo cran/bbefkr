@@ -7,7 +7,7 @@ funopare.kernel,
 SIF,
 error.den,
 error.denadj,
-loglikelihood_admkr,
+loglikelihood_global_admkr,
 logpriors_admkr,
 logdensity_admkr
 )

@@ -24,6 +24,6 @@ S. Chib (1995) `Marginal likelihood from the Gibbs output', \emph{Journal of the
 Han Lin Shang
 }
 \seealso{
-\code{\link{logdensity_admkr}}, \code{\link{loglikelihood_admkr}}
+\code{\link{logdensity_admkr}}, \code{\link{loglikelihood_global_admkr}}
 }
 \keyword{method}

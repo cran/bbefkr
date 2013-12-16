@@ -201,7 +201,10 @@ function(data_x, data_y, data_xnew, Xvar, Xvarpred, warm=1000, M=1000, mutprob=0
 	regressionfunctionestimate = (Xvar%*%betahat + NW$Estimated.values)	
 	residfinal = Specresp1 - regressionfunctionestimate	
 	sif_value = SIF(exp(xpM[,1:(ncol(xpM)-1)]), M, num_batch)
-        mlikeres = loglikelihood_admkr(exp(xpfinalres[1:2]), residfinal) + logpriors_admkr(exp(xpfinalres[1:2])^2, prior_alpha=prior_alpha, prior_beta=prior_beta) - logdensity_admkr(colMeans(xpMsquare[,1:2]), cpost[,1:2])
+    log_likelihood_Chib = loglikelihood_global_admkr(exp(xpfinalres[1:2]), residfinal)
+    log_prior_Chib = logpriors_admkr(exp(xpfinalres[1:2])^2, prior_alpha=prior_alpha, prior_beta=prior_beta)
+    log_density_Chib = logdensity_admkr(colMeans(xpMsquare[,1:2]), cpost[,1:2])
+    mlikeres = log_likelihood_Chib + log_prior_Chib - log_density_Chib
 
 	y = seq(err_int[1], err_int[2], by = diff(err_int)/(err_ngrid-1))
 	fore.den.mkr = fore.cdf.mkr = vector(,length(y))
@@ -214,15 +217,17 @@ function(data_x, data_y, data_xnew, Xvar, Xvarpred, warm=1000, M=1000, mutprob=0
 	if (twodatasets) 
 	{
 		NWpred = NW$Predicted.values + Xvarpred%*%betahat					
-		PI = NWpred + c(y[which.min(abs(fore.cdf.mkr - (1-alpha)/2))], y[which.min(abs(fore.cdf.mkr - (1+alpha)/2))])
+        lb = NWpred + y[which.min(abs(fore.cdf.mkr - (1-alpha)/2))]
+        ub = NWpred + y[which.min(abs(fore.cdf.mkr - (1+alpha)/2))]
+        PI = cbind(lb, ub)
 		return(list(xpfinalres = exp(xpfinalres[1:2]), mhat = regressionfunctionestimate, betahat = betahat, sif_value = sif_value, mlikeres = mlikeres,
 			acceptnwMCMC = mean(acceptnwMCMC), accepterroMCMC = mean(accepterroMCMC), 
 			fore.den.mkr = fore.den.mkr, fore.cdf.mkr = fore.cdf.mkr, pointforecast = NWpred, PI = PI))
 	}
 	else
 	{
-		return(list(xpfinalres = exp(xpfinalres[1:2]), mhat = regressionfunctionestimate, betahat = betahat, sif_value = sif_value, mlikeres = mlikeres,
-			acceptnwMCMC = mean(acceptnwMCMC), accepterroMCMC = mean(accepterroMCMC), 
+		return(list(xpfinalres = exp(xpfinalres[1:2]), mhat = regressionfunctionestimate, betahat = betahat, sif_value = sif_value, mlikeres = mlikeres, log_likelihood_Chib = log_likelihood_Chib, log_prior_Chib = log_prior_Chib, 
+            log_density_Chib = log_density_Chib, acceptnwMCMC = mean(acceptnwMCMC), accepterroMCMC = mean(accepterroMCMC), 
 			fore.den.mkr = fore.den.mkr, fore.cdf.mkr = fore.cdf.mkr))
 	}
 }

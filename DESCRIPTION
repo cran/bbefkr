@@ -2,8 +2,8 @@ Package: bbefkr
 Type: Package
 Title: Bayesian bandwidth estimation for the functional kernel
         regression with unknown error density
-Version: 2.0
-Date: 2013-11-24
+Version: 3.0
+Date: 2013-12-16
 Depends: R (>= 3.0.2), splines
 Author: Han Lin Shang
 Maintainer: Han Lin Shang <H.Shang@soton.ac.uk>
@@ -12,7 +12,7 @@ License: GPL (>= 2)
 LazyLoad: yes
 LazyData: yes
 URL: https://sites.google.com/site/hanlinshangswebsite/
-Packaged: 2013-11-24 16:39:25 UTC; hanlinshang
+Packaged: 2013-12-16 21:49:53 UTC; hanlinshang
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2013-11-24 19:24:10
+Date/Publication: 2013-12-16 23:11:56
