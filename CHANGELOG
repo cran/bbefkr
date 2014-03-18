@@ -1,9 +1,17 @@
-v 3.0
+v4.1
+
+1. Update the vignette. 
+2. Update the contact address.
+
+v4.0
+
+1. Add the simulate_error function for simulating errors following any of the 15 mixture normal densities studied in Marron and Wand (1992)
+
+v3.0
 
 1. Update the prediction intervals in bayMCMC_np_global, bayMCMC_np_local, bayMCMC_semi_global, bayMCMC_semi_local
 2. Add the loglikelihood, logprior and logdensity as outputs in all four functions
 3. Add the loglikelihood_global_admkr and loglikelihood_local_admkr functions
-
 
 v2.0
 

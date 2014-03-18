@@ -9,5 +9,6 @@ error.den,
 error.denadj,
 loglikelihood_global_admkr,
 logpriors_admkr,
-logdensity_admkr
+logdensity_admkr,
+simulate_error
 )

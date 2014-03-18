@@ -1,15 +1,14 @@
 bayMCMC_np_global <-
-function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=0.44, mutsizp=1.0, errorsizp=1.0, prior_alpha=1.0, prior_beta=0.05, 
-			err_int = c(-10,10), err_ngrid=10001, num_batch=20, step=10, alpha=0.95, ...)
+function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=0.44, mutsizp=1.0, errorsizp=1.0, prior_alpha=1.0, 
+			prior_beta=0.05, err_int = c(-10,10), err_ngrid=10001, num_batch=20, step=10, alpha=0.95, ...)
 {	
 	data_y <- as.vector(data_y)	
-	 if (is.vector(data_xnew)) 
+	if (is.vector(data_xnew)) 
         		data_xnew <- as.matrix(t(data_xnew))
-	    testfordim <- sum(dim(data_x) == dim(data_xnew)) == 2
-	    twodatasets <- TRUE
-	    if (testfordim) 
-	        twodatasets <- sum(data_x == data_xnew) != prod(dim(data_x))
-	
+	testfordim <- sum(dim(data_x) == dim(data_xnew)) == 2
+	twodatasets <- TRUE
+	if (testfordim) 
+	        twodatasets <- sum(data_x == data_xnew) != prod(dim(data_x))	
 	SPECURVES1 = data_x
 	Specresp1 = data_y
 	
@@ -56,13 +55,13 @@ function(data_x, data_y, data_xnew, warm=1000, M=1000,  mutprob=0.44, errorprob=
 		xp[1] = xp[1] + dv
 		fy = cost(xp)
 		rvalue = fx - fy
-	       if(is.nan(rvalue))
-	       {
+	    if(is.nan(rvalue))
+	    {
 		   accept = 0
-	       }
+	    }
 		else
 		{				
-		       if(fx > fy) accept = 1
+		    if(fx > fy) accept = 1
 			else
 			{
 				un = runif(1)

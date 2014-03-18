@@ -4,7 +4,7 @@
 %\VignettePackage{bbefkr}
   
 \documentclass[nojss]{jss}
-\usepackage{amsmath,amsfonts,bbm,enumitem,microtype,alltt,verbatim,subfig,bm,animate,tikz}
+\usepackage{amsmath,graphics,amsfonts,bbm,enumitem,microtype,alltt,verbatim,subfig,bm,animate,tikz}
 \usepackage[utf8]{inputenc} 
 \usepackage[figuresright]{rotating}
 
@@ -28,7 +28,7 @@
   
   %% need no \usepackage{Sweave.sty}
   
-  \author{Han Lin Shang\\ University of Southampton}
+  \author{Han Lin Shang\\ Australian National University}
   
   \title{The \pkg{bbefkr} Package}
   
@@ -38,8 +38,7 @@
   
 \Abstract{
 
-Recent advances in computer recording and storing technology have markedly increased the presence of functional data, whose graphical representation
-can be infinite-dimensional curve, image or shape. When a function-valued predictor and a scalar-valued response variable is observed, the functional kernel regression provides a flexible way to estimate its possible non-linear relationship. However, as with any type of kernel regression, it requires an optimal selection of smoothing parameter, called bandwidth and an optimal selection of semi-metric. In the literature of nonparametric functional regression, bandwidth parameter is often selected by a functional cross validation. In this article, we introduce a Bayesian bandwidth estimation method that uses the information about error density to help with the optimal selections of bandwidth and semi-metric in the regression function. We first describe the proposed Bayesian method and its implementations for estimating bandwidth parameters and selecting the optimal semi-metric based on marginal likelihood in a functional nonparametric regression and a semi-functional partial linear regression, using a readily-available \proglang{R} add-on package. Then, the proposed method is demonstrated using a series of simulation studies, as well as a spectroscopy data set in the food quality control.
+Recent advances in computer recording and storing technology have markedly increased the presence of functional data, whose graphical representation can be infinite-dimensional curve, image or shape. When a function-valued predictor and a scalar-valued response is observed, the functional kernel regression provides a flexible way to estimate its possible non-linear relationship. However, as with any type of kernel regression, it requires an optimal selection of smoothing parameter, called bandwidth and an optimal selection of semi-metric. In the literature of nonparametric functional regression, bandwidth parameter is often selected by a functional cross validation. In this article, we present a Bayesian bandwidth estimation method that uses the information about error density to help with the optimal selections of bandwidth and semi-metric in the regression function. We first describe the proposed Bayesian method in a functional nonparametric regression and a semi-functional partial linear regression. Illustrated by two simulation studies and a real data set, the Bayesian method is then implemented using a readily-available \proglang{R}  add-on package.
 
 }
   \Keywords{bandwidth selection, Bayesian model selection, functional Nadaraya-Watson estimator, kernel error density, marginal likelihood, random-walk Metropolis, simulation inefficiency factor}
@@ -47,33 +46,35 @@ can be infinite-dimensional curve, image or shape. When a function-valued predic
   \Plainkeywords{bandwidth selection, Bayesian model selection, functional Nadaraya-Watson estimator, kernel error density, marginal likelihood, random-walk Metropolis, simulation inefficiency factor}
   
   \Address{Han Lin Shang\\
-           ESRC Centre for Population Change \\
-           University of Southampton\\
-           SO17 1BJ, United Kingdom\\
-           E-mail: \email{H.Shang@soton.ac.uk}\\
+           Research School of Finance, Actuarial Studies and
+           
+           Applied Statistics \\
+           Australian National University \\
+           Canberra ACT 0200, Australia\\
+           E-mail: \email{hanlin.shang@anu.edu.au}\\
            URL: \url{https://sites.google.com/site/hanlinshangswebsite/} \\
   }
   
   \begin{document}
 \SweaveOpts{concordance=FALSE}
 
+\section{Introduction}
 
-The aim of this article is to describe the \proglang{R} functions that are readily-available in the \pkg{bbefkr} package, for estimating bandwidth parameters in a functional nonparametric regression and a semi-functional partial linear regression. This article was motivated by the recent developments in nonparametric functional regression estimators for analysing the relationship between a function-valued predictor and a real-valued scalar response. Some commonly used nonparametric functional estimators include: functional Nadayara-Watson (NW) estimator
-\citep{FV06}, functional local linear estimator \citep{BFV10}, functional $k$-nearest neighbour estimator \citep{BFV09}, and distance-based local linear estimator \citep{BDF10}.
+The aim of this article is to describe the \proglang{R} functions that are readily-available in the \pkg{bbefkr} package \citep{Shang14b}, for estimating bandwidth parameters in a functional nonparametric regression and a semi-functional partial linear regression. This article was motivated by the recent developments in nonparametric functional regression estimators for analysing the relationship between a function-valued predictor and a real-valued scalar response. Some commonly used nonparametric functional estimators include: functional Nadayara-Watson (NW) estimator \citep{FV06}, functional local linear estimator \citep{BFV10}, functional $k$-nearest neighbour estimator \citep{BFV09} and distance-based local linear estimator \citep{BDF10}. Because of simplicity and mathematical elegance, we consider the functional NW estimator in this paper.
 
-In all of the aforementioned functional estimators, the estimation accuracy of the conditional mean, conditional median or conditional mode depends crucially on the optimal selections of the bandwidth parameter and semi-metric. Commonly, the optimal bandwidth is selected by the functional cross validation (CV), which is designed to assess the predictive performance of a model by an average of certain measures for the ability of predicting a subset of functions by a model fit, after deleting these functions from the data set only \citep{RV07}. Functional CV has the appealing feature that no estimation of the error variance is required. However, since residuals affect the estimation accuracy of regression function, functional CV may select a sub-optimal bandwidth. This in turn leads to inferior estimation accuracy of regression functions \citep[see for example,][]{Shang13, Shang13a}. As an alternative, we present a Bayesian bandwidth estimation method that simultaneously estimates the bandwidths in the regression function and kernel-form error density \citep[see][for the importance of error density estimation]{Shang13}. As a by-product of the Bayesian method, we can also select the optimal semi-metric based on the notion of marginal likelihood.
+In all of the aforementioned functional estimators, the estimation accuracy of the conditional mean crucially depends on the optimal selections of the bandwidth parameter and semi-metric. Commonly, the optimal bandwidth is selected by the functional cross validation (CV), which is designed to assess the predictive performance of a model by an average of certain measures for the ability of predicting a subset of functions by a model fit, after deleting these functions from the data set only \citep{RV07}. Functional CV aims to minimise $L_2$ loss function and has the appealing feature that no estimation of the error variance is required. However, since residuals affect the estimation accuracy of regression function, functional CV may select a sub-optimal bandwidth. This in turn leads to inferior estimation accuracy of regression functions \citep[see for example,][]{Shang13, Shang13a}. As an alternative, we present a Bayesian bandwidth estimation method that simultaneously estimates the optimal bandwidths in the regression function and kernel-form error density by minimising the generalised loss function \citep[see][for the importance of error density estimation]{Shang13}. As a by-product of the Bayesian method, we can also select the optimal semi-metric based on the notion of marginal likelihood.
 
-Before introducing the bandwidth estimation method, we first define the problem more precisely. Let $\bm{y} = (y_1,y_2,\dots,y_n)^{\top}$ be a vector of scalar responses, $\bm{T} = (T_1,T_2,\dots,T_n)^{\top}$ be realisations of a functional predictor and $\bm{X}=(X_{i1},\dots,X_{ip})_{i=1,\dots,n}$ be $p$-dimensional real-valued predictors, where $^{\top}$ represents matrix transpose. We consider two regression models, namely a nonparametric functional regression and a semi-functional partial linear regression, where the latter is a generalisation of the former. The semi-functional partial linear regression can be defined as
+Before introducing the bandwidth estimation method, we first define the problem more precisely. Let $\bm{y} = (y_1,y_2,\dots,y_n)^{\top}$ be a vector of scalar responses, $\bm{T} = (T_1,T_2,\dots,T_n)^{\top}$ be realisations of a functional predictor and $\bm{X}=(X_{i1},\dots,X_{ip})_{i=1,\dots,n}$ be $p$-dimensional real-valued predictors, where $^{\top}$ represents matrix transpose. We consider two regression models, namely a functional nonparametric regression and a semi-functional partial linear regression. The latter is a generalisation of the former, in which the real-valued predictors are also incorporated into the regression function. The semi-functional partial linear regression can be defined as
 \begin{equation}
 y_i = \bm{X}_i\bm{\beta} + m(T_i)+\varepsilon_i, \qquad i=1,2,\dots,n,\label{eq:111}
 \end{equation}
-where $\bm{\beta} = (\beta_1,\dots,\beta_p)^{\top}$ is a vector of unknown real-valued regression coefficients in the parametric counterpart, $m$ is an unknown smooth function that performs the mapping from function space to real space, and $(\varepsilon_1,\dots,\varepsilon_n)$ are independent and identically distributed (iid) random errors with an unknown error density, denoted as $f(\varepsilon)$. We assume that there is no correlation between the covariates in the regression function and errors, that is
+where $\bm{\beta} = (\beta_1,\dots,\beta_p)^{\top}$ is a vector of unknown real-valued regression coefficients in the parametric counterpart, $m$ is an unknown smooth function that performs the mapping from function space to real space and $(\varepsilon_1,\dots,\varepsilon_n)$ are independent and identically distributed (iid) random errors with an unknown error density, denoted as $f(\varepsilon)$. We assume that there is no correlation between the covariates in the regression function and errors, that is
 \begin{equation*}
 \text{E}(\varepsilon_i|\bm{X}_i, T_i) = 0.
 \end{equation*}
-The functional nonparametric regression model has the only nonparametric part of the equation~\eqref{eq:111}. In both regression models, we are interested in accurately estimating the regression function $m$ and $f(\varepsilon)$, which is mainly determined by the optimal selection of bandwidth parameters and semi-metric.
+The functional nonparametric regression model has the only nonparametric part of the equation~\eqref{eq:111}. In both regression models, we are interested in accurately estimating the regression function $m$ and $f(\varepsilon)$, which are mainly determined by the optimal selections of bandwidth and semi-metric.
 
-This article proceeds as follows. The Bayesian bandwidth estimation method is first described and its estimation accuracy is then compared based on marginal likelihood or Bayes factor. Through a series of simulation studies, the sampling algorithm is implemented using the \pkg{bbefkr} package. Conclusions will then be presented.
+This article proceeds as follows. The Bayesian bandwidth estimation method is first described and its estimation accuracy is then compared based on the idea of marginal likelihood or Bayes factor. Through a series of simulation studies, the sampling algorithm is demonstrated using the \proglang{R} functions in the \pkg{bbefkr} package. Conclusions will then be presented.
 
 
 \section{Bayesian bandwidth estimation}
@@ -84,19 +85,19 @@ The proposed bandwidth estimation methods aims to accurately estimate the regres
 
 The unknown error density $f(\varepsilon)$ can be approximated by a location-mixture of Gaussian densities \citep[see also][]{RW97}, given by
 \begin{equation*}
-f(\varepsilon;b) = \frac{1}{n}\sum^n_{j=1}\frac{1}{b}\phi(\frac{\varepsilon-\varepsilon_j}{b}),
+f(\varepsilon;b) = \frac{1}{n}\sum^n_{j=1}\frac{1}{b}\phi\left(\frac{\varepsilon-\varepsilon_j}{b}\right),
 \end{equation*}
-where $\phi(\cdot)$ is the probability density function of the standard Gaussian distribution, and the component Gaussian densities have means at $\varepsilon_j$, for $j=1,2,\dots,n$, and a common standard deviation $b$. Although error $\varepsilon_j$ is unknown, it can be estimated by the functional NW estimator. Thus, the density of $y_i$ is approximated by the estimated error density $\widehat{f}(\varepsilon; b)$, expressed as
+where $\phi(\cdot)$ is the probability density function of the standard Gaussian distribution and the component Gaussian densities have means at $\varepsilon_j$, for $j=1,2,\dots,n$ and a common standard deviation $b$. Although error $\varepsilon_j$ is unknown, it can be estimated by the functional NW estimator. Thus, the density of $y_i$ is approximated by the estimated error density $\widehat{f}(\varepsilon; b)$, expressed as
 \begin{equation*}
-\widehat{f}(\varepsilon;b)=\frac{1}{n}\sum^n_{j=1}\frac{1}{b}\phi(\frac{\varepsilon-\widehat{\varepsilon}_j}{b}),
+\widehat{f}(\varepsilon;b)=\frac{1}{n}\sum^n_{j=1}\frac{1}{b}\phi\left(\frac{\varepsilon-\widehat{\varepsilon}_j}{b}\right),
 \end{equation*}
-where $b$ represents the estimate of residual bandwidth. In order to avoid the possible selection of $b=0$, a leave-one-out version is used given by
+where $b$ represents residual bandwidth. In order to avoid the possible selection of $b=0$, a leave-one-out version of the kernel likelihood is often used, given by
 \begin{equation*}
-\widehat{f}(\widehat{\varepsilon}_i;b) = \frac{1}{n-1}\sum^n_{\substack{j=1\\j\neq i}}\frac{1}{b}\phi(\frac{\widehat{\varepsilon}_i-\widehat{\varepsilon}_j}{b}),
+\widehat{f}(\widehat{\varepsilon}_i;b) = \frac{1}{n-1}\sum^n_{\substack{j=1\\j\neq i}}\frac{1}{b}\phi\left(\frac{\widehat{\varepsilon}_i-\widehat{\varepsilon}_j}{b}\right),
 \end{equation*}
-where $\widehat{\varepsilon}_i = y_i-\widehat{m}(T_i;h)$ is the $i$th residual for $i=1,2,\dots,n$, in the functional nonparametric regression. In the semi-functional partial linear regression, $\widehat{\varepsilon}_i=y_i-\bm{X}_i\widehat{\bm{\beta}}-\widehat{m}(T_i;h)$, where the estimation of $\widehat{\bm{\beta}}$ can be obtained by the ordinary least squares  \citep[][Section 2]{Shang13a}. Given $(h, b)$ and iid assumption of the errors, the kernel likelihood of $\bm{y} = (y_1,y_2,\dots,y_n)^{\top}$ can be approximated by
+where $\widehat{\varepsilon}_i = y_i-\widehat{m}(T_i;h)$ is the $i$th residual for $i=1,2,\dots,n$, in the functional nonparametric regression. In the semi-functional partial linear regression, $\widehat{\varepsilon}_i=y_i-\bm{X}_i\widehat{\bm{\beta}}-\widehat{m}(T_i;h)$, where $\widehat{\bm{\beta}}$ can be obtained by the ordinary least squares  \citep[][Section 2]{Shang13a}. Given $(h, b)$ and iid assumption of the errors, the leave-one-out version of the kernel likelihood of $\bm{y} = (y_1,y_2,\dots,y_n)^{\top}$ can be approximated by
 \begin{equation*}
-\widehat{L}(\bm{y}|h, b) = \prod^n_{i=1}\Big[\frac{1}{n-1}\sum^n_{\substack{j=1\\j\neq i}}\frac{1}{b}\phi(\frac{\widehat{\varepsilon}_i-\widehat{\varepsilon}_j}{b})\Big].
+\widehat{L}(\bm{y}|h, b) = \prod^n_{i=1}\Bigg[\frac{1}{n-1}\sum^n_{\substack{j=1\\j\neq i}}\frac{1}{b}\phi\left(\frac{\widehat{\varepsilon}_i-\widehat{\varepsilon}_j}{b}\right)\Bigg].
 \end{equation*}
 
 \subsection{Prior density}
@@ -104,47 +105,53 @@ where $\widehat{\varepsilon}_i = y_i-\widehat{m}(T_i;h)$ is the $i$th residual f
 We now discuss the issue of prior density for the bandwidths. Let $\pi(h^2)$ and $\pi(b^2)$ be the independent prior of squared bandwidths $h$ and $b$. Since $h^2$ and $b^2$ play the role of variance parameters in the Gaussian densities, we assume that the priors of $h^2$ and $b^2$ are inverse Gamma density, denoted by IG$(\alpha_h,\beta_h)$ and IG$(\alpha_b,\beta_b)$, respectively. Thus, the prior densities of $h^2$ and $b^2$ are given by
 
 \begin{align*}
-\pi(h^2) &= \frac{(\beta_h)^{\alpha_h}}{\Gamma(\alpha_h)}(\frac{1}{h^2})^{\alpha_h+1}\exp(-\frac{\beta_h}{h^2}),\\
-\pi(b^2) &=\frac{(\beta_b)^{\alpha_b}}{\Gamma(\alpha_b)}(\frac{1}{b^2})^{\alpha_b+1}\exp(-\frac{\beta_b}{b^2}),
+\pi(h^2) &= \frac{(\beta_h)^{\alpha_h}}{\Gamma(\alpha_h)}\left(\frac{1}{h^2}\right)^{\alpha_h+1}\exp\left(-\frac{\beta_h}{h^2}\right),\\
+\pi(b^2) &=\frac{(\beta_b)^{\alpha_b}}{\Gamma(\alpha_b)}\left(\frac{1}{b^2}\right)^{\alpha_b+1}\exp\left(-\frac{\beta_b}{b^2}\right),
 \end{align*}
-where $\alpha_h=\alpha_b=1.0$ and $\beta_h=\beta_b=0.05$ as hyper-parameters. Sensitivity results studied in \cite{Shang13, Shang13a} show that the choice of hyper-parameters does not influence the estimation of posterior density.
+where $\alpha_h=\alpha_b=1.0$ and $\beta_h=\beta_b=0.05$ as hyper-parameters. Sensitivity results studied in \cite{Shang13, Shang13a} show that the choices of hyper-parameters and inverse Gamma densities do not influence the estimation of posterior density.
 
 \subsection{Posterior density}
 
-According to the Bayes theorem, the posterior of $h^2$ and $b^2$ is written by
+Let $\bm{\theta}=(h^2, b^2)$ be the parameter vector and $\bm{y}=(y_1,\dots,y_n)^{\top}$ be the data. According to the Bayes theorem, the posterior of $\bm{\theta}$ is written by
 \begin{equation}
-\pi(h^2,b^2|\bm{y}) = \frac{\widehat{L}(\bm{y}|h^2,b^2)\pi(h^2)\pi(b^2)}{L(\bm{y})},\label{eq:11}
+\pi(\bm{\theta}|\bm{y}) = \frac{\widehat{L}(\bm{y}|\bm{\theta})\pi(\bm{\theta})}{L(\bm{y})},\label{eq:11}
 \end{equation}
-where $\widehat{L}(\bm{y}|h^2, b^2)$ is the approximated likelihood function with squared bandwidths, and $L(\bm{y})$ is the marginal likelihood. In practice, the posterior in~\eqref{eq:11} can be approximated by (up to a normalising constant):
+where $\widehat{L}(\bm{y}|\bm{\theta})$ is the approximated likelihood function with squared bandwidths and $L(\bm{y})$ is the marginal likelihood, which can be expressed as
 \begin{equation*}
-\pi(h^2,b^2|\bm{y}) \propto \widehat{L}(\bm{y}|h^2,b^2)\pi(h^2)\pi(b^2),
+\int \widehat{L}(\bm{y}|\bm{\theta})\pi(\bm{\theta})d\bm{\theta}.
+\end{equation*}
+In practice, the posterior in~\eqref{eq:11} can be approximated by (up to a normalising constant):
+\begin{equation*}
+\pi\left(\bm{\theta}|\bm{y}\right) \propto \widehat{L}\left(\bm{y}|\bm{\theta}\right)\pi\left(\bm{\theta}\right).
 \end{equation*}
 
-We use the adaptive random-walk Metropolis algorithm to sample $(h^2, b^2)$ \citep[see][for details]{Shang13}. In order to assess the convergence of the Markov chain Monte Carlo (MCMC) algorithm, we use the notion of simulation inefficiency factor \citep{MY00}. This is a measure of autocorrelation among iterations, and provides an indication of how many iterations are required to have the iid draws from the posterior distributions. It is noteworthy that the diagnostic tools in the \pkg{coda} package \citep{PBC+06} can also be applied to check the convergence of MCMC.
+We use the adaptive random-walk Metropolis algorithm to sample $\bm{\theta}$ \citep[see][for details]{Shang13, Shang13a}. In order to assess the convergence of the Markov chain Monte Carlo (MCMC) algorithm, we use the notion of simulation inefficiency factor \citep{MY00}. This is a measure of autocorrelation among iterations and provides an indication of how many iterations are required to have the iid draws from the posterior distributions. It is noteworthy that a full range of diagnostic tools in the \pkg{coda} package \citep{PBC+06} can also be applied to check the convergence of MCMC.
 
-\subsection{Adaptive estimation of error density}
+\subsection{Adaptive estimation of error density}\label{sec:local}
 
-In kernel density estimation, it has been noted that the leave-one-out estimator may be heavily affected by extreme observations in the sample \citep[see for example,][]{Bowman84}. Because of the use of a global bandwidth, the leave-one-out kernel error density estimator is likely to overestimate the tails of the density. To overcome this deficiency, it is possible to use localised bandwidths by assigning small bandwidths to the residuals in the high density region, and large bandwidths to the residuals in the low density region. The localised error density estimator can be given by
+In kernel density estimation, it has been noted that the leave-one-out estimator may be heavily affected by extreme observations in the data sample \citep[see for example,][]{Bowman84}. Because of the use of a global bandwidth, the leave-one-out kernel error density estimator is likely to overestimate the tails of the density. To overcome this deficiency, it is possible to use localised bandwidths by assigning small bandwidths to the residuals in the high density region and large bandwidths to the residuals in the low density region. The localised error density estimator can be given by
 \begin{equation}
-  \widehat{f}(\widehat{\varepsilon};b,\tau_{\varepsilon}) = \frac{1}{n-1}\sum^n_{\substack{j=1\\ j\neq i}}\frac{1}{b(1+\tau_{\varepsilon}|\widehat{\varepsilon}_j|)}\phi\Big(\frac{\widehat{\varepsilon}_i-\widehat{\varepsilon}_j}{b(1+\tau_{\varepsilon}|\widehat{\varepsilon}_j|)}\Big),
+  \widehat{f}(\widehat{\varepsilon}_i;b,\tau_{\varepsilon}) = \frac{1}{n-1}\sum^n_{\substack{j=1\\ j\neq i}}\frac{1}{b\left(1+\tau_{\varepsilon}|\widehat{\varepsilon}_j|\right)}\phi\left(\frac{\widehat{\varepsilon}_i-\widehat{\varepsilon}_j}{b\left(1+\tau_{\varepsilon}|\widehat{\varepsilon}_j|\right)}\right),\label{eq:local}
 \end{equation}
-where $b(1+\tau_{\varepsilon}|\widehat{\varepsilon}_j|)$ is the bandwidth assigned to residual $\widehat{\varepsilon}_j$, for $j=1,2,\dots,n$, and the vector of parameters is now $(h, b, \tau_{\varepsilon})$. Again, the random-walk Metropolis algorithm can be used to sample these parameters.
+where $b\left(1+\tau_{\varepsilon}|\widehat{\varepsilon}_j|\right)$ is the bandwidth assigned to residual $\widehat{\varepsilon}_j$ and the vector of parameters is now $(h, b, \tau_{\varepsilon})$. Again, the random-walk Metropolis algorithm can be used to sample these parameters, where the prior density of $\tau_{\varepsilon}\sim U(0,1)$.
 
 \section{Bayesian model selection}
 
-In Bayesian inference, model selection or averaging is often conducted through the Bayes factor of the model of interest against a competing model. The Bayes factor reflects a summary of evidence provided by the data supporting the model as opposed to its competing model. The Bayes factor can be defined as the ratio of the marginal likelihoods under different models.
+How could the Bayesian model selection be useful in functional kernel regression? The answer lies in the choice of semi-metric, which is important to obtain good statistical properties of the nonparametric method in the function space. As pointed out by \cite{FV09}, the choice of semi-metric has effects on the size and the form of neighborhoods and can thus control the concentration properties of functional data. From a practical viewpoint, a semi-metric based on derivative should be used for a set of smooth functional data; a semi-metric based on dimension reduction technique, such as functional principal component analysis, should be used for a set of rough functional data \citep[][Chapters 3 and 13]{FV06}. Although \citet[][p.193]{FV06} remarked that the optimal selection of semi-metric remains an open question, there is no method to quantify which semi-metric is more adequate, or how to select the optimal one. Here, we propose to use the marginal likelihood to select the optimal semi-metric. 
 
-The marginal likelihood is defined as the expectation of likelihood with respect to the prior of parameters. It is seldom computed as the integral of the product of the likelihood and prior of parameters, but instead, is often computed numerically \citep[][among others]{GD94, NR94, Chib95, KR95, Geweke99}. We utilised the method proposed by \cite{Chib95} to compute the marginal likelihood.
+In Bayesian inference, model selection or averaging is often conducted through the Bayes factor of the model of interest against a competing model. The Bayes factor reflects a summary of evidence provided by the data supporting the model as opposed to its competing model. The Bayes factor can be defined as the ratio of the marginal likelihoods under different models. The marginal likelihood is defined as the expectation of likelihood with respect to the prior of parameters. It is seldom computed as the integral of the product of the likelihood and prior of parameters, but instead, is often computed numerically \citep[][among others]{GD94, NR94, Chib95, KR95, Geweke99}. We utilised the method proposed by \cite{Chib95} to compute the marginal likelihood.
 
-Let $\bm{\theta}=(h,b)$ be the parameter vector and $\bm{y}=(y_1,\dots,y_n)$ be the data. \cite{Chib95} showed that the marginal likelihood under model A is expressed as
+\cite{Chib95} showed that the marginal likelihood under semi-metric A is expressed as
 \begin{equation*}
-P_{\text{A}}(\bm{y})=\frac{l_{\text{A}}(\bm{y}|\bm{\theta})\pi_{\text{A}}(\bm{\theta})}{\pi_{\text{A}}(\bm{\theta}|\bm{y})},
+L_{\text{A}}(\bm{y})=\frac{\widehat{L}_{\text{A}}(\bm{y}|\bm{\theta})\pi_{\text{A}}(\bm{\theta})}{\pi_{\text{A}}(\bm{\theta}|\bm{y})},
 \end{equation*}
-where $l_{\text{A}}(\bm{y}|\bm{\theta})$, $\pi_{\text{A}}(\bm{\theta})$ and $\pi_{\text{A}}(\bm{\theta}|\bm{y})$ denote the likelihood, prior and posterior under model A, respectively. $P_{\text{A}}(\bm{Y})$ is often computed at the posterior estimate of $\bm{\theta}$. The numerator has a closed form and can be computed analytically. For relatively small number of parameters, the denominator can be estimated by its kernel density estimator based on the simulated chain of $\bm{\theta}$ through a posterior sampler.
+where $\widehat{L}_{\text{A}}(\bm{y}|\bm{\theta})$, $\pi_{\text{A}}(\bm{\theta})$ and $\pi_{\text{A}}(\bm{\theta}|\bm{y})$ denote the kernel likelihood, prior and posterior under semi-metric A, respectively. $L_{\text{A}}(\bm{Y})$ is often computed at the posterior estimate of $\bm{\theta}$. The numerator has a closed form and can be computed analytically, but the denominator can be approximated by the MCMC posterior draws. However, for relatively small number of parameters, the denominator can be estimated by its kernel density estimator based on the simulated chain of $\bm{\theta}$ through a posterior sampler.
 
-The Bayes factor of model A against model B is defined as $P_{\text{A}}(\bm{y})/P_{\text{B}}(\bm{y})$. Based on the Bayes factor, we can determine which model is more superior than a competing model with different levels of evidence \citep[see][for more details]{KR95}.
-
-Here, we use the marginal likelihood to select the optimal semi-metric. The choice of semi-metric is important to obtain good statistical properties of the nonparametric method in the function space. As pointed out by \cite{FV09}, the choice of semi-metric has effects on the size and the form of neighborhoods and can thus control the concentration properties of functional data. From a practical viewpoint, a semi-metric based on derivative should be used for a set of smooth functional data; a semi-metric based on dimension reduction technique, such as functional principal component analysis, should be used for a set of rough functional data \citep[][Chapters 3 and 13]{FV06}. Although \citet[][p.193]{FV06} remarked that the selection of semi-metric remains an open question, there is no method to quantify which semi-metric is more adequate, or how to select the optimal one.
+The Bayes factor of semi-metric A against semi-metric B is defined as 
+\begin{equation*}
+\frac{L_{\text{A}}(\bm{y})}{L_{\text{B}}(\bm{y})}. 
+\end{equation*}
+Based on the Bayes factor, we can determine which model is more superior than a competing model with different levels of evidence \citep[see][for more details]{KR95}; it is also possible to combine different semi-metrics using the idea of Bayesian model averaging.
 
 \section{Simulation studies}
 
@@ -152,18 +159,18 @@ We describe the construction of the simulated data. First of all, a set of discr
 \begin{equation}
 T_i(t_j)=a_i\cos(2t_j)+b_i\sin(4t_j)+c_i(t_j^2-\pi t_j+\frac{2}{9}\pi^2),\qquad i=1,2,\dots,n,\label{eq:1}
 \end{equation}
-where $0\leq t_1\leq t_2\leq \dots \leq t_{100}\leq \pi$ are equispaced points, $a_i, b_i$ and $c_i$ are independently drawn from a uniform distribution on $[0,1]$, and $n$ represents the sample size. The functional form in~\eqref{eq:1} was taken from \cite{FVV10}, and has also been studied by \cite{Shang13,Shang13a}. Figure~\ref{fig:20} presents 20 simulated smooth curves as an example.
+where $0\leq t_1\leq t_2\leq \dots \leq t_{100}\leq \pi$ are equispaced points, $a_i, b_i$ and $c_i$ are independently drawn from a uniform distribution on $[0,1]$ and $n$ represents the sample size. The functional form in~\eqref{eq:1} was taken from \cite{FVV10} and has also been studied by \cite{Shang13,Shang13a}. Figure~\ref{fig:20} presents 20 simulated smooth curves as an example.
 \begin{figure}[!ht]
   \centering
-  {\includegraphics[width=11cm]{smoothcurves}}
-  \caption{\small 20 simulated smooth curves}\label{fig:20}
+  {\includegraphics[width=11.5cm]{smoothcurves}}
+  \caption{\small 20 simulated smooth curves.}\label{fig:20}
 \end{figure}
 
 
 Once the curves are defined, one simulates a functional regression model to compute the scalar responses, given below:
 \begin{enumerate}
-\item[1)] construct a nonparametric component $m(T_i)=10\times (a_i^2-b_i^2)$, which performs the mapping from function-valued space to real-valued space.
-\item[2)] in the nonparametric functional regression, the regression function consists of only a nonparametric component. Thus, we have $\tau_i = m(T_i)$. In the semi-functional partial linear regression, we also have a parametric component. In this case, let $X_{i1}$ and $X_{i2}$ be independently drawn from a uniform distribution $U(0,1)$ for $i=1,2,\dots,n$. The true values of regression coefficients are set to be $\bm{\beta}=(-1,2)$. The regression function is constructed as
+\item[1)] construct a nonparametric component $m(T_i)=10\times \left(a_i^2-b_i^2\right)$, which performs the mapping from function-valued space to real-valued space.
+\item[2)] in the functional nonparametric regression, the regression function consists of only a nonparametric component. Thus, we have $\tau_i = m(T_i)$. In the semi-functional partial linear regression, we also have a parametric component. In this case, let $X_{i1}$ and $X_{i2}$ be independently drawn from a uniform distribution $U(0,1)$ for $i=1,2,\dots,n$. The true values of regression coefficients are set to be $\bm{\beta}=(-1,2)$. The regression function is constructed as
 \begin{equation*}
 \tau_i = m(T_i)+\bm{X}_i\bm{\beta},\qquad \text{for}\ i=1,2,\dots,n.
 \end{equation*}
@@ -174,15 +181,23 @@ y_i = \tau_i+\varepsilon_i.
 \end{equation*}
 \end{enumerate}
 
-\subsection*{Smooth curves}
+\subsection{Smooth curves}
 
-First, we consider a set of smoothed curves as realisations of a functional predictor, and choose a semi-metric based on the 2nd derivative to measure the distances among curves. The relationship between a functional predictor and a scalar response can be modelled by a functional nonparametric regression or a semi-functional partial linear regression. In the case of a nonparametric functional regression, the estimated bandwidths can be obtained as follows:
+First, we consider a set of smoothed curves as realisations of a functional predictor and choose a semi-metric based on the second derivative to measure the distances among curves. The relationship between a functional predictor and a scalar response can be modelled by either a functional nonparametric regression or a semi-functional partial linear regression. In the case of a functional nonparametric regression, the optimal selection of semi-metric and the estimated bandwidths, regression function and error density can be obtained as follows:
 \begin{Verbatim}[fontsize=\small]
+# install and load the R package
+R> install.packages("bbefkr")
+R> require(bbefkr)
+
+# set random seed
+R> set.seed(123456)
+
 # error density is approximated by a kernel density of residuals with a global bandwidth
-# q=2 represents the semi-metric based on the 2nd derivative, since functions can be
+# q=2 represents the semi-metric based on the second derivative, since functions can be
 # estimated by a basis representation, a B-spline basis representation is used with 20 knots
 R> np_global <- bayMCMC_np_global(data_x=simcurve_smooth_normerr, data_y=simresp_np_normerr,
-data_xnew=simcurve_smooth_normerr, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
+  	data_xnew=simcurve_smooth_normerr, warm=1000, M=1000, range.grid=c(0,pi), 
+		q=2, nknot=20)
 
 # estimated bandwidth parameters (h,b)
 R> np_global$xpfinalres
@@ -191,6 +206,7 @@ R> np_global$xpfinalres
 R> np_global$mhat
 
 # simulation inefficiency factor to evaluate the convergence of MCMC
+# it measures how many iterations are required to have the iid draws from the posterior
 R> np_global$sif_value
 
 # log marginal likelihood computed by Chib (1995)'s method
@@ -207,11 +223,12 @@ R> np_global$fore.den.mkr
 R> np_global$fore.cdf.mkr
 \end{Verbatim}
 
-By using localised bandwidths, the estimation of error density can generally be more accurate than a global bandwidth because large residuals in magnitude are assigned relatively large bandwidths, while small residuals in magnitude are assigned relatively small bandwidths. An example is provided below:
+By using localised bandwidths, the estimation of error density can generally be more accurate than a global bandwidth because residuals with large magnitude are assigned relatively large bandwidths, while residuals with small magnitude are assigned relatively small bandwidths. An example is provided below:
 \begin{Verbatim}[fontsize=\small]
 # error density is approximated by a kernel density of residuals with localised bandwidths
 R> np_local <- bayMCMC_np_local(data_x=simcurve_smooth_normerr, data_y=simresp_np_normerr,
-data_xnew=simcurve_smooth_normerr, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
+  	data_xnew=simcurve_smooth_normerr, warm=1000, M=1000, range.grid=c(0,pi), 
+		q=2, nknot=20)
 
 # estimated bandwidth parameters (h, b, badj)
 R> np_local$xpfinalres
@@ -235,19 +252,20 @@ R> np_local$fore.den.mkr
 R> np_local$fore.cdf.mkr
 \end{Verbatim}
 
+
 Based on the log marginal likelihood (LML), the kernel-form error density with localised bandwidths is preferred to a global bandwidth. The Bayes factor can be derived from the difference in LML:
 \begin{equation*}
 \exp(\text{LML}_{\text{G}}-\text{LML}_{\text{L}}),
 \end{equation*}
-where G and L represent the kernel density estimators of error density, with a global bandwidth or localised bandwidths.
+where G and L represent the kernel density estimators of error density, with a global bandwidth or localised bandwidths as described in~\eqref{eq:local}.
 
-In a semi-functional partial linear regression, the algorithm is similar to a nonparametric functional regression. Thus, we only highlight the additional output produced, such as the estimation of regression coefficients in the parametric part of the regression function. This is described as follows:
+In a semi-functional partial linear regression, the algorithm is similar to a functional nonparametric regression. Thus, we only highlight the additional output produced, such as the estimation of regression coefficients in the parametric part of the regression function. This is described as follows:
 \begin{Verbatim}[fontsize=\small]
 # error density is approximated by a kernel density of residuals with a global bandwidth
 # Xvar is a n by 2 matrix, where each column variable is simulated from U(0,1)
 R> semi_global <- bayMCMC_semi_global(data_x=simcurve_smooth_normerr,
-data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, Xvar=Xvar, warm=1000,
-M=1000, range.grid=c(0,pi), q=2, nknot=20)
+  		data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, 
+			Xvar=Xvar, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
 # estimated regression coefficients
 R> semi_global$betahat
@@ -257,8 +275,8 @@ R> semi_global$mlikeres
 
 # error density is approximated by a kernel density of residuals with localised bandwidths
 R> semi_local <- bayMCMC_semi_local(data_x=simcurve_smooth_normerr,
-data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, Xvar=Xvar, warm=1000,
-M=1000, range.grid=c(0,pi), q=2, nknot=20)
+			data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, 
+			Xvar=Xvar, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
 # estimated regression coefficients
 R> semi_local$betahat
@@ -267,97 +285,96 @@ R> semi_local$betahat
 R> semi_local$mlikeres
 \end{Verbatim}
 
-
 \subsection*{Rough curves}
 
-We also consider a set of rough curves as realisations of a functional predictor. The same functional form is used as given in~\eqref{eq:1}, but one extra variable $d_j\stackrel{\text{iid}}{\sim} U(-0.1,0.1)$ is included. Figure~\ref{fig:2} presents 20 simulated rough curves as an example.
+We also consider a set of rough curves as realisations of a functional predictor. The same functional form is given in~\eqref{eq:1}, but one extra variable $d_j\stackrel{\text{iid}}{\sim} U(-0.1,0.1)$ is included. Figure~\ref{fig:2} presents 20 simulated rough curves as an example.
 \begin{figure}[!ht]
 \centering
-{\includegraphics[width=11cm]{roughcurves}}
-\caption{\small 20 simulated rough curves}\label{fig:2}
+{\includegraphics[width=11.5cm]{roughcurves}}
+\caption{\small 20 simulated rough curves.}\label{fig:2}
 \end{figure}
 
-For modelling a set of rough curves, the semi-metric based on functional principal components should be used \citep{FV06}. From one to five functional principal components, \cite{Shang13a} found that retaining three functional principal components produces the smallest estimation error in this data set. Therefore, we compare the log marginal likelihoods between the semi-metric based on the 2nd derivative and the semi-metric based on three functional principal components
+For modelling a set of rough curves, the semi-metric based on functional principal components should be used \citep{FV06}. From one to five functional principal components, \cite{Shang13a} found that retaining three functional principal components produces the smallest estimation error in this data set and should be sufficient to explain main mode of variation. Therefore, we compare the LMLs between the semi-metric based on the second derivative and the semi-metric based on three retained functional principal components. This can be implemented as follows:
 \begin{Verbatim}[fontsize=\small]
 # error density is approximated by a kernel density of residuals with a global bandwidth
-# using the semi-metric based on the 2nd derivative
+# using the semi-metric based on the second derivative
 R> rough_np_global_deriv <- bayMCMC_np_global(data_x=simcurve_rough_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-range.grid=c(0,pi), q=2, nknot=20)
+  data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
+	range.grid=c(0,pi), q=2, nknot=20)
 
-# a global bandwidth using the semi-metric based on three functional principal components
-R> rough_np_global_pca = bayMCMC_np_global(data_x=simcurve_rough_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-semimetric="pca", q=3)
+# a global bandwidth using the semi-metric based on three retained principal components
+R> rough_np_global_pca <- bayMCMC_np_global(data_x=simcurve_rough_normerr,
+	data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
+	semimetric="pca", q=3)
 
 # comparing two semi-metrics based on their log marginal likelihoods
 R> c(rough_np_global_deriv$mlikeres, rough_np_global_pca$mlikeres)
 \end{Verbatim}
 
-Similar findings also held for the nonparametric functional regression model with localised bandwidths. These can be implemented as follows:
+Similar findings also held for the functional nonparametric regression model with localised bandwidths. These can be implemented as follows:
 \begin{Verbatim}[fontsize=\small]
 # error density is approximated by a kernel density of residuals with localised bandwidths
-# using the semi-metric based on the 2nd derivative
+# using the semi-metric based on the second derivative
 R> rough_np_local_deriv <- bayMCMC_np_local(data_x=simcurve_rough_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-range.grid=c(0,pi), q=2, nknot=20)
+  data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
+	range.grid=c(0,pi), q=2, nknot=20)
 
-# localised bandwidths using the semi-metric based on three functional principal components
+# localised bandwidths using the semi-metric based on three retained principal components
 R> rough_np_local_pca <- bayMCMC_np_local(data_x=simcurve_rough_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-semimetric="pca", q=3)
+	data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
+	semimetric="pca", q=3)
 
 # comparing two semi-metrics based on their log marginal likelihoods
 R> c(rough_np_local_deriv$mlikeres, rough_np_local_pca$mlikeres)
 \end{Verbatim}
 
-Thus, for a set of rough curves, the semi-metric based on functional principal components is more suitable than the semi-metric based on the 2nd derivative. However, for a set of smooth curves, it is advantageous to use the semi-metric based on the 2nd derivative, as described below:
+Thus, for a set of rough curves, the semi-metric based on functional principal components is more suitable than the semi-metric based on the second derivative. However, for a set of smooth curves, it is advantageous to use the semi-metric based on the second derivative, as shown below:
 \begin{Verbatim}[fontsize=\small]
 # error density is approximated by a kernel density of residuals with a global bandwidth
-# using the semi-metric based on the 2nd derivative
+# using the semi-metric based on the second derivative
 R> smooth_np_global_deriv <- bayMCMC_np_global(data_x=simcurve_smooth_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-range.grid=c(0,pi), q=2, nknot=20)
+  data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
+	range.grid=c(0,pi), q=2, nknot=20)
 
 # a global bandwidth using the semi-metric based on functional principal components
 R> smooth_np_global_pca <- bayMCMC_np_global(data_x=simcurve_smooth_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-semimetric="pca", q=3)
+	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
+	semimetric="pca", q=3)
 
 # comparing two semi-metrics based on their log marginal likelihoods
 R> c(smooth_np_global_deriv$mlikeres, smooth_np_global_pca$mlikeres)
 
-# localised bandwidths using the semi-metric based on the 2nd derivative
+# localised bandwidths using the semi-metric based on the second derivative
 R> smooth_np_local_deriv <- bayMCMC_np_local(data_x=simcurve_smooth_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-range.grid=c(0,pi), q=2, nknot=20)
+	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
+	range.grid=c(0,pi), q=2, nknot=20)
 
 # localised bandwidths using the semi-metric based on functional principal components
 R> smooth_np_local_pca <- bayMCMC_np_local(data_x=simcurve_smooth_normerr,
-data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-semimetric="pca", q=3)
+	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
+	semimetric="pca", q=3)
 
 # comparing two semi-metrics based on their log marginal likelihoods
 R> c(smooth_np_local_deriv$mlikeres, smooth_np_local_pca$mlikeres)
 \end{Verbatim}
 
-Among a set of possible semi-metrics, the marginal likelihood allows us to select the optimal one.
+Among a set of possible semi-metrics, the computation of marginal likelihood allows us to determine the optimal semi-metric and possibly combine different semi-metrics. The latter one remains an open question.
 
-\section*{Spectroscopy application}
+\section{Spectroscopy application}
 
-Let us consider a food quality control application, previously studied by \cite{FV06, AV06} and \cite{Shang13,Shang13a}. The data set was obtained from \url{http://lib.stat.cmu.edu/datasets/tecator}. Each food sample contains finely chopped pure meat with different percentages of the fat, protein and moisture contents. For each unit $i$ (among 215 pieces of finely chopped meat), we observe one spectrometric curve, denoted by $T_i$, which corresponds to the absorbance measured at a grid of 100 wavelengths, from 852nm to 1050nm in the step of 2nm. Given a new spectrometric curve $T_{\text{new}}$, we aim to predict its corresponding fat content. A graphical display of spectrometric curves is shown in Figure~\ref{fig:spec}.
+Let us consider a food quality control application, where the focus is on the prediction of the fat content of meat products based on near-infrared absorbance spectroscopy. This data set was first studied by \cite{BH92} and has since been studied by \cite{FV06}, \cite{AV06}, \cite{Shang13, Shang13a}, \cite{GS14}, among many others. The data set was obtained from \url{http://lib.stat.cmu.edu/datasets/tecator}. Each food sample contains finely chopped pure meat with different percentages of the fat, protein and moisture contents. For each unit $i$ (among 215 pieces of finely chopped meat), we observe one spectrometric curve, denoted by $T_i$, which corresponds to the absorbance measured at a grid of 100 wavelengths, from 852nm to 1050nm in the step of 2nm. Given a new spectrometric curve $T_{\text{new}}$, we aim to predict its corresponding fat content. As pointed out by \cite{FV06}, the motivation is that obtaining a spectrometric curve is less time and cost consuming than the analytic chemistry needed for determining the fat content. A graphical display of spectrometric curves is shown in Figure~\ref{fig:spec}.
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=11cm]{spec}
-\caption{\small The first 45 spectrometric curves. Among these curves, the first 44 curves are used for the estimation of bandwidths, while the 45th curve is used for the prediction of fat content}\label{fig:spec}
+\includegraphics[width=11.5cm]{spec}
+\caption{\small The first 45 spectrometric curves. Among these curves, the first 44 curves are used for the estimation of bandwidths, while the 45th curve is used for the prediction of fat content.}\label{fig:spec}
 \end{figure}
 
-To predict the fat content, we consider a functional nonparametric regression and a semi-functional partial linear regression. As shown in \cite{Shang13a}, the semi-functional partial linear regression gives more accurate forecasts than the functional nonparametric regression, since it uses additional information about protein and moisture contents. The forecasts can be obtained as follows:
+To predict the fat content, we consider a functional nonparametric regression and a semi-functional partial linear regression. As shown in \cite{Shang13a}, the semi-functional partial linear regression gives more accurate forecasts than the functional nonparametric regression, since it uses additional information about protein and moisture contents. The point and interval forecasts can be obtained as follows:
 \begin{Verbatim}[fontsize=\small]
 # We use the first 44 pairs of data to estimate the relationship. Based on a new curve,
-# we can then predict its response using a nonparametric functional regression
-R> fat_np_global <- bayMCMC_np_global(specurves[1:44,], fat[1:44], specurves[45,],
-range.grid=c(0,pi), q=2, nknot=20)
+# we can then predict its response using a functional nonparametric regression
+R> fat_np_global <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+  		data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)
 
 # Point forecast
 R> fat_np_global$pointforecast
@@ -365,9 +382,9 @@ R> fat_np_global$pointforecast
 # 95% prediction interval
 R> fat_np_global$PI
 
-# Using a nonparametric functional regression with localised bandwidths
-R> fat_np_local <- bayMCMC_np_local(specurves[1:44,], fat[1:44], specurves[45,],
-range.grid=c(0,pi), q=2, nknot=20)
+# Using a functional nonparametric regression with localised bandwidths
+R> fat_np_local <- bayMCMC_np_local(data_x = specurves[1:44,], data_y = fat[1:44], 
+			data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)
 
 # Point forecast
 R> fat_np_local$pointforecast
@@ -376,9 +393,10 @@ R> fat_np_local$pointforecast
 R> fat_np_local$PI
 
 # Using a semi-functional partial linear regression with a global bandwidth
-R> fat_semi_global <- bayMCMC_semi_global(data_x = specurves[1:44,], data_y = fat[1:44],
-data_xnew = specurves[45,], Xvar = cbind(protein[1:44], moisture[1:44]),
-Xvarpred = matrix(c(protein[45], moisture[45]), nrow=1), range.grid=c(0,pi), q=2, nknot=20)
+R> fat_semi_global <- bayMCMC_semi_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+	data_xnew = specurves[45,], Xvar = cbind(protein[1:44], moisture[1:44]), 
+	Xvarpred = matrix(c(protein[45], moisture[45]), nrow=1), 
+	range.grid=c(0,pi), q=2, nknot=20)
 
 # Point forecast
 R> fat_semi_global$pointforecast
@@ -387,9 +405,10 @@ R> fat_semi_global$pointforecast
 R> fat_semi_global$PI
 
 # Using a semi-functional partial linear regression with localised bandwidths
-R> fat_semi_local <- bayMCMC_semi_local(data_x = specurves[1:44,], data_y = fat[1:44],
-data_xnew = specurves[45,], Xvar = cbind(protein[1:44], moisture[1:44]),
-Xvarpred = matrix(c(protein[45], moisture[45]), nrow=1), range.grid=c(0,pi), q=2, nknot=20)
+R> fat_semi_local <- bayMCMC_semi_local(data_x = specurves[1:44,], data_y = fat[1:44], 
+	data_xnew = specurves[45,], Xvar = cbind(protein[1:44], moisture[1:44]),
+	Xvarpred = matrix(c(protein[45], moisture[45]), nrow=1), 
+	range.grid=c(0,pi), q=2, nknot=20)
 
 # Point forecast
 R> fat_semi_local$pointforecast
@@ -398,15 +417,27 @@ R> fat_semi_local$pointforecast
 R> fat_semi_local$PI
 \end{Verbatim}
 
-Among the semi-metrics based on first derivative, second derivative, functional principal component analysis with one, two and three retained components, we found that the semi-metric based on the second derivative has the largest marginal likelihood and smallest prediction error.
+Among the semi-metrics based on first derivative, second derivative, functional principal component analysis with three retained principal components, we found that the semi-metric based on the second derivative has the largest marginal likelihood and smallest prediction error in this example. As a demonstration with a global bandwidth in the functional nonparametric regression, the LMLs of the three semi-metrics are computed as follows:
+\begin{Verbatim}[fontsize=\small]
+R> fat_np_global_d1 <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+  		data_xnew = specurves[45,], range.grid=c(0,pi), q=1, nknot=20)
+                                   
+R> fat_np_global_d2 <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+			data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)                                   
+                                   
+R> fat_np_global_pca <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+			data_xnew = specurves[45,], semimetric="pca", q=3)
 
-\section*{Conclusion}
+R> c(fat_np_global_d1$mlikeres, fat_np_global_d2$mlikeres, fat_np_global_pca$mlikeres)
+\end{Verbatim}
 
-This article describes the Bayesian bandwidth estimation method and its implementations in a functional nonparametric regression and a semi-functional partial linear regression, using the \pkg{bbefkr} package. The method is proposed to simultaneously estimate bandwidths in the regression function approximated by the functional NW estimator and kernel-form error density. Illustrated by a series of simulation studies, we found that the use of localised bandwidths is preferable to a global bandwidth based on marginal likelihood or Bayes factor. For modelling a set of smooth curves, it is advantageous to use a semi-metric based on derivative, whereas a semi-metric based on functional principal components should be used for a set of rough curves. From the spectroscopy data set, we demonstrate that the proposed Bayesian method is able to simultaneously produce point and interval forecasts.
+\section{Conclusion}
 
-In future research, the method described may be extended to other nonparametric functional estimators, such as functional local linear estimator \citep{Baillo2009}. Furthermore, it may also be extended to other scalar-on-function regression models, such as functional partial linear regression \citep{Lian2011}.
+This article describes the Bayesian bandwidth estimation method and its implementations in a functional nonparametric regression and a semi-functional partial linear regression, using the \proglang{R} functions that are readily-available in the \pkg{bbefkr} package. The method is proposed to simultaneously estimate optimal bandwidths in the regression function approximated by the functional NW estimator and kernel-form error density. Illustrated by a series of simulation studies, we found that the use of localised bandwidths is preferable to a global bandwidth based on marginal likelihood or Bayes factor. For modelling a set of smooth curves, it is advantageous to use a semi-metric based on second derivative, whereas a semi-metric based on functional principal components should be used for a set of rough curves. From the spectroscopy data set, we demonstrated that the proposed Bayesian method is able to simultaneously produce point and interval forecasts and the semi-metric based on the second derivative is advantageous to the semi-metric based on principal components for this data set.
+
+In future, the Bayesian method described may be extended to other nonparametric functional estimators for estimating regression function, such as functional local linear estimator \citep{Baillo2009}. Furthermore, it may also be extended to other scalar-on-function regression models, such as functional partial linear regression \citep{Lian2011}.
 
 
-\bibliography{bbefkr}
+\bibliography{Shang}
 
 \end{document}
