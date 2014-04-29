@@ -1,0 +1,53 @@
+citHeader("To cite the bbefkr package in publications use:")
+
+citation(auto = meta)
+
+bibentry(bibtype = "article",
+         title = "Bayesian bandwidth estimation for a nonparametric functional regression model with unknown error density",
+         author = person("Han Lin", "Shang", email = "hanlin.shang@anu.edu.au"),
+         year = 2013,
+	 journal = "Computational Statistics and Data Analysis",
+	 volume = 67,
+	 pages = "185--198",
+         url = "http://www.sciencedirect.com/science/article/pii/S0167947313001679",
+ 	 textVersion = {
+             paste(paste("Han Lin Shang",
+                         "(2013),",
+                         "Bayesian bandwidth estimation for",
+                         "a nonparametric functional regression model with unknown error density,"),
+                   "Computational Statistics and Data Analysis 67, 185-198.",                   
+                   sep = "  ")
+         }
+)
+
+bibentry(bibtype = "article",
+         title = "Shang, H. L. (2014) Bayesian bandwidth estimation for a semi-functional partial linear regression model with unknown error density,",
+         author = person("Han Lin", "Shang", email = "hanlin.shang@anu.edu.au"),
+         year = 2014,
+	 journal = "Computational Statistics",
+	 volume = "in press",
+ 	 textVersion = {
+             paste(paste("Han Lin Shang",
+                         "(2014),",
+                         "Bayesian bandwidth estimation for",
+                         "a semi-functional partial linear regression model with unknown error density,"),
+                   "Computational Statistics, in press.",                   
+                   sep = "  ")
+         }
+)
+
+bibentry(bibtype = "article",
+         title = "Shang, H. L. (2014) Bayesian bandwidth estimation for a functional nonparametric regression model with mixed types of regressors and unknown error density,",
+         author = person("Han Lin", "Shang", email = "hanlin.shang@anu.edu.au"),
+         year = 2014,
+	 journal = "Journal of Nonparametric Statistics",
+	 volume = "in press",
+ 	 textVersion = {
+             paste(paste("Han Lin Shang",
+                         "(2014),",
+                         "Bayesian bandwidth estimation for",
+                         "a functional nonparametric regression model with mixed types of regressors and unknown error density,"),
+                   "Journal of Nonparametric Statistics, in press.",                   
+                   sep = "  ")
+         }
+)

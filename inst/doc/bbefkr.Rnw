@@ -4,59 +4,69 @@
 %\VignettePackage{bbefkr}
   
 \documentclass[nojss]{jss}
-\usepackage{amsmath,graphics,amsfonts,bbm,enumitem,microtype,alltt,verbatim,subfig,bm,animate,tikz}
+\usepackage{amsmath,amsfonts,enumitem,microtype,alltt,verbatim,subfig,bm,animate}
 \usepackage[utf8]{inputenc} 
 \usepackage[figuresright]{rotating}
 
-\newcommand{\field}[1]{\mathbb{#1}}
-\newcommand{\R}{$\field{R}$}
-\usetikzlibrary[decorations.shapes]
-\usetikzlibrary[petri]
+%% Change the default page sizes.
 
-  %% Change the default page sizes.
+\setlength{\topmargin}{-0.25in}
+\setlength{\textheight}{8.5in}
+\setlength{\oddsidemargin}{.0in}
+\setlength{\evensidemargin}{.0in}
+\setlength{\textwidth}{6.5in}
+\setlength{\footskip}{.5in}
+
+\newenvironment{smallexample}{\begin{alltt}\small}{\end{alltt}}
+\newenvironment{smallverbatim}{\small\verbatim}{\endverbatim}
+%\graphicspath{{plots/}}
+
+%% need no \usepackage{Sweave.sty}
   
-  \setlength{\topmargin}{-0.25in}
-  \setlength{\textheight}{8.5in}
-  \setlength{\oddsidemargin}{.0in}
-  \setlength{\evensidemargin}{.0in}
-  \setlength{\textwidth}{6.5in}
-  \setlength{\footskip}{.5in}
+\author{Han Lin Shang\\ Australian National University}
   
-  \newenvironment{smallexample}{\begin{alltt}\small}{\end{alltt}}
-  \newenvironment{smallverbatim}{\small\verbatim}{\endverbatim}
-  \graphicspath{{plots/}}
+\title{The \pkg{bbefkr} Package}
   
-  %% need no \usepackage{Sweave.sty}
+\Plainauthor{Han Lin Shang}
   
-  \author{Han Lin Shang\\ Australian National University}
-  
-  \title{The \pkg{bbefkr} Package}
-  
-  \Plainauthor{Han Lin Shang}
-  
-  \Plaintitle{The \pkg{bbefkr} Package}
+\Plaintitle{The \pkg{bbefkr} Package}
   
 \Abstract{
 
 Recent advances in computer recording and storing technology have markedly increased the presence of functional data, whose graphical representation can be infinite-dimensional curve, image or shape. When a function-valued predictor and a scalar-valued response is observed, the functional kernel regression provides a flexible way to estimate its possible non-linear relationship. However, as with any type of kernel regression, it requires an optimal selection of smoothing parameter, called bandwidth and an optimal selection of semi-metric. In the literature of nonparametric functional regression, bandwidth parameter is often selected by a functional cross validation. In this article, we present a Bayesian bandwidth estimation method that uses the information about error density to help with the optimal selections of bandwidth and semi-metric in the regression function. We first describe the proposed Bayesian method in a functional nonparametric regression and a semi-functional partial linear regression. Illustrated by two simulation studies and a real data set, the Bayesian method is then implemented using a readily-available \proglang{R}  add-on package.
 
 }
-  \Keywords{bandwidth selection, Bayesian model selection, functional Nadaraya-Watson estimator, kernel error density, marginal likelihood, random-walk Metropolis, simulation inefficiency factor}
+\Keywords{bandwidth selection, Bayesian model selection, functional Nadaraya-Watson estimator, kernel error density, marginal likelihood, random-walk Metropolis, simulation inefficiency factor}
                         
-  \Plainkeywords{bandwidth selection, Bayesian model selection, functional Nadaraya-Watson estimator, kernel error density, marginal likelihood, random-walk Metropolis, simulation inefficiency factor}
+\Plainkeywords{bandwidth selection, Bayesian model selection, functional Nadaraya-Watson estimator, kernel error density, marginal likelihood, random-walk Metropolis, simulation inefficiency factor}
   
-  \Address{Han Lin Shang\\
-           Research School of Finance, Actuarial Studies and
-           
-           Applied Statistics \\
-           Australian National University \\
-           Canberra ACT 0200, Australia\\
-           E-mail: \email{hanlin.shang@anu.edu.au}\\
-           URL: \url{https://sites.google.com/site/hanlinshangswebsite/} \\
-  }
+\Address{Han Lin Shang\\
+         Research School of Finance, Actuarial Studies and           
+         Applied Statistics \\
+         Australian National University \\
+         Canberra ACT 0200, Australia\\
+         E-mail: \email{hanlin.shang@anu.edu.au}\\
+         URL: \url{https://sites.google.com/site/hanlinshangswebsite/} \\
+}
   
-  \begin{document}
+\begin{document}
 \SweaveOpts{concordance=FALSE}
+
+%% For graphics
+\setkeys{Gin}{width=0.45\textwidth}
+
+%% Note that you should use the \pkg{}, \proglang{} and \code{} commands.
+
+%% Note - fragile using \label{} in \section{} - must be outside
+
+%% For graphics
+
+<<eval=TRUE,echo=FALSE,keep.source=TRUE,results=hide>>=
+library(bbefkr)
+options(prompt = "R> ", bbefkr.messages = FALSE, digits = 3)
+@ 
+
+%% <<fig=TRUE,eval=TRUE, height=, width=>>=
 
 \section{Introduction}
 
@@ -184,73 +194,78 @@ y_i = \tau_i+\varepsilon_i.
 \subsection{Smooth curves}
 
 First, we consider a set of smoothed curves as realisations of a functional predictor and choose a semi-metric based on the second derivative to measure the distances among curves. The relationship between a functional predictor and a scalar response can be modelled by either a functional nonparametric regression or a semi-functional partial linear regression. In the case of a functional nonparametric regression, the optimal selection of semi-metric and the estimated bandwidths, regression function and error density can be obtained as follows:
-\begin{Verbatim}[fontsize=\small]
-# install and load the R package
-R> install.packages("bbefkr")
-R> require(bbefkr)
 
-# set random seed
-R> set.seed(123456)
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## install and load the R package
+install.packages("bbefkr")
+require(bbefkr)
 
-# error density is approximated by a kernel density of residuals with a global bandwidth
-# q=2 represents the semi-metric based on the second derivative, since functions can be
-# estimated by a basis representation, a B-spline basis representation is used with 20 knots
-R> np_global <- bayMCMC_np_global(data_x=simcurve_smooth_normerr, data_y=simresp_np_normerr,
-  	data_xnew=simcurve_smooth_normerr, warm=1000, M=1000, range.grid=c(0,pi), 
-		q=2, nknot=20)
+## set random seed
+set.seed(123456)
 
-# estimated bandwidth parameters (h,b)
-R> np_global$xpfinalres
+## error density is approximated by a kernel density of residuals with a global 
+## bandwidth, q=2 represents the semi-metric based on the second derivative, 
+## since functions can be estimated by a basis representation, a B-spline 
+## basis representation is used with 20 knots
+np_global <- bayMCMC_np_global(data_x=simcurve_smooth_normerr, 
+    data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, 
+    warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# estimated values for the regression function
-R> np_global$mhat
+## estimated bandwidth parameters (h,b)
+np_global$xpfinalres
 
-# simulation inefficiency factor to evaluate the convergence of MCMC
-# it measures how many iterations are required to have the iid draws from the posterior
-R> np_global$sif_value
+## estimated values for the regression function
+np_global$mhat
 
-# log marginal likelihood computed by Chib (1995)'s method
-R> np_global$mlikeres
+## simulation inefficiency factor to evaluate the convergence of MCMC
+## it measures how many iterations are required to have the iid draws 
+## from the posterior
+np_global$sif_value
 
-# acceptance rates of the random-walk Metropolis sampling algorithm with target of 0.44
-# for the bandwidths in the regression function and kernal-form error density
-R> c(np_global$acceptnwMCMC, np_global$accepterroMCMC)
+## log marginal likelihood computed by Chib (1995)'s method
+np_global$mlikeres
 
-# estimated error density (probability density function)
-R> np_global$fore.den.mkr
+## acceptance rates of the random-walk Metropolis sampling algorithm with target of
+## 0.44 for the bandwidths in the regression function and kernal-form error density
+c(np_global$acceptnwMCMC, np_global$accepterroMCMC)
 
-# estimated error density (cumulative probability density function)
-R> np_global$fore.cdf.mkr
-\end{Verbatim}
+## estimated error density (probability density function)
+np_global$fore.den.mkr
+
+## estimated error density (cumulative probability density function)
+np_global$fore.cdf.mkr
+@
 
 By using localised bandwidths, the estimation of error density can generally be more accurate than a global bandwidth because residuals with large magnitude are assigned relatively large bandwidths, while residuals with small magnitude are assigned relatively small bandwidths. An example is provided below:
-\begin{Verbatim}[fontsize=\small]
-# error density is approximated by a kernel density of residuals with localised bandwidths
-R> np_local <- bayMCMC_np_local(data_x=simcurve_smooth_normerr, data_y=simresp_np_normerr,
-  	data_xnew=simcurve_smooth_normerr, warm=1000, M=1000, range.grid=c(0,pi), 
-		q=2, nknot=20)
 
-# estimated bandwidth parameters (h, b, badj)
-R> np_local$xpfinalres
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## error density is approximated by a kernel density of residuals with localised 
+## bandwidths
+np_local <- bayMCMC_np_local(data_x=simcurve_smooth_normerr, 
+    data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, 
+    M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# estimated values for the regression function
-R> np_local$mhat
+## estimated bandwidth parameters (h, b, badj)
+np_local$xpfinalres
 
-# simulation inefficiency factor to evaluate the convergence of MCMC
-R> np_local$sif_value
+## estimated values for the regression function
+np_local$mhat
 
-# log marginal likelihood computed by Chib (1995)'s method
-R> np_local$mlikeres
+## simulation inefficiency factor to evaluate the convergence of MCMC
+np_local$sif_value
 
-# acceptance rates of the random-walk Metropolis algorithm for the bandwidths
-R> c(np_local$acceptnwMCMC, np_local$accepterroMCMC, np_local$acceptepsilonMCMC)
+## log marginal likelihood computed by Chib (1995)'s method
+np_local$mlikeres
 
-# estimated error density (probability density function)
-R> np_local$fore.den.mkr
+## acceptance rates of the random-walk Metropolis algorithm for the bandwidths
+c(np_local$acceptnwMCMC, np_local$accepterroMCMC, np_local$acceptepsilonMCMC)
 
-# estimated error density (cumulative probability density function)
-R> np_local$fore.cdf.mkr
-\end{Verbatim}
+## estimated error density (probability density function)
+np_local$fore.den.mkr
+
+## estimated error density (cumulative probability density function)
+np_local$fore.cdf.mkr
+@
 
 
 Based on the log marginal likelihood (LML), the kernel-form error density with localised bandwidths is preferred to a global bandwidth. The Bayes factor can be derived from the difference in LML:
@@ -260,30 +275,33 @@ Based on the log marginal likelihood (LML), the kernel-form error density with l
 where G and L represent the kernel density estimators of error density, with a global bandwidth or localised bandwidths as described in~\eqref{eq:local}.
 
 In a semi-functional partial linear regression, the algorithm is similar to a functional nonparametric regression. Thus, we only highlight the additional output produced, such as the estimation of regression coefficients in the parametric part of the regression function. This is described as follows:
-\begin{Verbatim}[fontsize=\small]
-# error density is approximated by a kernel density of residuals with a global bandwidth
-# Xvar is a n by 2 matrix, where each column variable is simulated from U(0,1)
-R> semi_global <- bayMCMC_semi_global(data_x=simcurve_smooth_normerr,
-  		data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, 
-			Xvar=Xvar, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# estimated regression coefficients
-R> semi_global$betahat
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## error density is approximated by a kernel density of residuals with a global 
+## bandwidth, Xvar is a n by 2 matrix, where each column variable is simulated 
+## from U(0,1)
+semi_global <- bayMCMC_semi_global(data_x=simcurve_smooth_normerr,
+  data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, 
+  Xvar=Xvar, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# log marginal likelihood computed by Chib (1995)'s method
-R> semi_global$mlikeres
+## estimated regression coefficients
+semi_global$betahat
 
-# error density is approximated by a kernel density of residuals with localised bandwidths
-R> semi_local <- bayMCMC_semi_local(data_x=simcurve_smooth_normerr,
-			data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, 
-			Xvar=Xvar, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
+## log marginal likelihood computed by Chib (1995)'s method
+semi_global$mlikeres
 
-# estimated regression coefficients
-R> semi_local$betahat
+## error density is approximated by a kernel density of residuals with localised 
+## bandwidths
+semi_local <- bayMCMC_semi_local(data_x=simcurve_smooth_normerr,
+  data_y=simresp_semi_normerr, data_xnew=simcurve_smooth_normerr, 
+  Xvar=Xvar, warm=1000, M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# log marginal likelihood computed by Chib (1995)'s method
-R> semi_local$mlikeres
-\end{Verbatim}
+## estimated regression coefficients
+semi_local$betahat
+
+## log marginal likelihood computed by Chib (1995)'s method
+semi_local$mlikeres
+@
 
 \subsection*{Rough curves}
 
@@ -295,74 +313,81 @@ We also consider a set of rough curves as realisations of a functional predictor
 \end{figure}
 
 For modelling a set of rough curves, the semi-metric based on functional principal components should be used \citep{FV06}. From one to five functional principal components, \cite{Shang13a} found that retaining three functional principal components produces the smallest estimation error in this data set and should be sufficient to explain main mode of variation. Therefore, we compare the LMLs between the semi-metric based on the second derivative and the semi-metric based on three retained functional principal components. This can be implemented as follows:
-\begin{Verbatim}[fontsize=\small]
-# error density is approximated by a kernel density of residuals with a global bandwidth
-# using the semi-metric based on the second derivative
-R> rough_np_global_deriv <- bayMCMC_np_global(data_x=simcurve_rough_normerr,
-  data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-	range.grid=c(0,pi), q=2, nknot=20)
 
-# a global bandwidth using the semi-metric based on three retained principal components
-R> rough_np_global_pca <- bayMCMC_np_global(data_x=simcurve_rough_normerr,
-	data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-	semimetric="pca", q=3)
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## error density is approximated by a kernel density of residuals with a global 
+## bandwidth using the semi-metric based on the second derivative
+rough_np_global_deriv <- bayMCMC_np_global(data_x=simcurve_rough_normerr,
+  data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, 
+  M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# comparing two semi-metrics based on their log marginal likelihoods
-R> c(rough_np_global_deriv$mlikeres, rough_np_global_pca$mlikeres)
-\end{Verbatim}
+## a global bandwidth using the semi-metric based on three retained 
+## principal components
+rough_np_global_pca <- bayMCMC_np_global(data_x=simcurve_rough_normerr,
+	data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, 
+  M=1000, semimetric="pca", q=3)
+
+## comparing two semi-metrics based on their log marginal likelihoods
+c(rough_np_global_deriv$mlikeres, rough_np_global_pca$mlikeres)
+@
 
 Similar findings also held for the functional nonparametric regression model with localised bandwidths. These can be implemented as follows:
-\begin{Verbatim}[fontsize=\small]
-# error density is approximated by a kernel density of residuals with localised bandwidths
-# using the semi-metric based on the second derivative
-R> rough_np_local_deriv <- bayMCMC_np_local(data_x=simcurve_rough_normerr,
+
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## error density is approximated by a kernel density of residuals with 
+## localised bandwidths using the semi-metric based on the second derivative
+rough_np_local_deriv <- bayMCMC_np_local(data_x=simcurve_rough_normerr,
   data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
 	range.grid=c(0,pi), q=2, nknot=20)
 
-# localised bandwidths using the semi-metric based on three retained principal components
-R> rough_np_local_pca <- bayMCMC_np_local(data_x=simcurve_rough_normerr,
-	data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, M=1000,
-	semimetric="pca", q=3)
+## localised bandwidths using the semi-metric based on three retained 
+## principal components
+rough_np_local_pca <- bayMCMC_np_local(data_x=simcurve_rough_normerr,
+	data_y=simresp_np_normerr, data_xnew=simcurve_rough_normerr, warm=1000, 
+  M=1000, semimetric="pca", q=3)
 
-# comparing two semi-metrics based on their log marginal likelihoods
-R> c(rough_np_local_deriv$mlikeres, rough_np_local_pca$mlikeres)
-\end{Verbatim}
+## comparing two semi-metrics based on their log marginal likelihoods
+c(rough_np_local_deriv$mlikeres, rough_np_local_pca$mlikeres)
+@
 
 Thus, for a set of rough curves, the semi-metric based on functional principal components is more suitable than the semi-metric based on the second derivative. However, for a set of smooth curves, it is advantageous to use the semi-metric based on the second derivative, as shown below:
-\begin{Verbatim}[fontsize=\small]
-# error density is approximated by a kernel density of residuals with a global bandwidth
-# using the semi-metric based on the second derivative
-R> smooth_np_global_deriv <- bayMCMC_np_global(data_x=simcurve_smooth_normerr,
-  data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-	range.grid=c(0,pi), q=2, nknot=20)
 
-# a global bandwidth using the semi-metric based on functional principal components
-R> smooth_np_global_pca <- bayMCMC_np_global(data_x=simcurve_smooth_normerr,
-	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-	semimetric="pca", q=3)
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## error density is approximated by a kernel density of residuals with a global 
+## bandwidth using the semi-metric based on the second derivative
+smooth_np_global_deriv <- bayMCMC_np_global(data_x=simcurve_smooth_normerr,
+  data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, 
+  M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# comparing two semi-metrics based on their log marginal likelihoods
-R> c(smooth_np_global_deriv$mlikeres, smooth_np_global_pca$mlikeres)
+## a global bandwidth using the semi-metric based on functional 
+## principal components
+smooth_np_global_pca <- bayMCMC_np_global(data_x=simcurve_smooth_normerr,
+	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, 
+  M=1000, semimetric="pca", q=3)
 
-# localised bandwidths using the semi-metric based on the second derivative
-R> smooth_np_local_deriv <- bayMCMC_np_local(data_x=simcurve_smooth_normerr,
-	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-	range.grid=c(0,pi), q=2, nknot=20)
+## comparing two semi-metrics based on their log marginal likelihoods
+c(smooth_np_global_deriv$mlikeres, smooth_np_global_pca$mlikeres)
 
-# localised bandwidths using the semi-metric based on functional principal components
-R> smooth_np_local_pca <- bayMCMC_np_local(data_x=simcurve_smooth_normerr,
-	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, M=1000,
-	semimetric="pca", q=3)
+## localised bandwidths using the semi-metric based on the second derivative
+smooth_np_local_deriv <- bayMCMC_np_local(data_x=simcurve_smooth_normerr,
+	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, 
+  M=1000, range.grid=c(0,pi), q=2, nknot=20)
 
-# comparing two semi-metrics based on their log marginal likelihoods
-R> c(smooth_np_local_deriv$mlikeres, smooth_np_local_pca$mlikeres)
-\end{Verbatim}
+## localised bandwidths using the semi-metric based on functional 
+## principal components
+smooth_np_local_pca <- bayMCMC_np_local(data_x=simcurve_smooth_normerr,
+	data_y=simresp_np_normerr, data_xnew=simcurve_smooth_normerr, warm=1000, 
+  M=1000, semimetric="pca", q=3)
+
+## comparing two semi-metrics based on their log marginal likelihoods
+c(smooth_np_local_deriv$mlikeres, smooth_np_local_pca$mlikeres)
+@
 
 Among a set of possible semi-metrics, the computation of marginal likelihood allows us to determine the optimal semi-metric and possibly combine different semi-metrics. The latter one remains an open question.
 
 \section{Spectroscopy application}
 
-Let us consider a food quality control application, where the focus is on the prediction of the fat content of meat products based on near-infrared absorbance spectroscopy. This data set was first studied by \cite{BH92} and has since been studied by \cite{FV06}, \cite{AV06}, \cite{Shang13, Shang13a}, \cite{GS14}, among many others. The data set was obtained from \url{http://lib.stat.cmu.edu/datasets/tecator}. Each food sample contains finely chopped pure meat with different percentages of the fat, protein and moisture contents. For each unit $i$ (among 215 pieces of finely chopped meat), we observe one spectrometric curve, denoted by $T_i$, which corresponds to the absorbance measured at a grid of 100 wavelengths, from 852nm to 1050nm in the step of 2nm. Given a new spectrometric curve $T_{\text{new}}$, we aim to predict its corresponding fat content. As pointed out by \cite{FV06}, the motivation is that obtaining a spectrometric curve is less time and cost consuming than the analytic chemistry needed for determining the fat content. A graphical display of spectrometric curves is shown in Figure~\ref{fig:spec}.
+Let us consider a food quality control application, where the focus is on the prediction of the fat content of meat products based on near-infrared absorbance spectroscopy. This data set was first studied by \cite{BH92} and has since been studied by \cite{FV06}, \cite{AV06}, \cite{Shang13, Shang13a, Shang2014}, \cite{GS14}, among many others. The data set was obtained from \url{http://lib.stat.cmu.edu/datasets/tecator}. Each food sample contains finely chopped pure meat with different percentages of the fat, protein and moisture contents. For each unit $i$ (among 215 pieces of finely chopped meat), we observe one spectrometric curve, denoted by $T_i$, which corresponds to the absorbance measured at a grid of 100 wavelengths, from 852nm to 1050nm in the step of 2nm. Given a new spectrometric curve $T_{\text{new}}$, we aim to predict its corresponding fat content. As pointed out by \cite{FV06}, the motivation is that obtaining a spectrometric curve is less time and cost consuming than the analytic chemistry needed for determining the fat content. A graphical display of spectrometric curves is shown in Figure~\ref{fig:spec}.
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=11.5cm]{spec}
@@ -370,66 +395,69 @@ Let us consider a food quality control application, where the focus is on the pr
 \end{figure}
 
 To predict the fat content, we consider a functional nonparametric regression and a semi-functional partial linear regression. As shown in \cite{Shang13a}, the semi-functional partial linear regression gives more accurate forecasts than the functional nonparametric regression, since it uses additional information about protein and moisture contents. The point and interval forecasts can be obtained as follows:
-\begin{Verbatim}[fontsize=\small]
-# We use the first 44 pairs of data to estimate the relationship. Based on a new curve,
-# we can then predict its response using a functional nonparametric regression
-R> fat_np_global <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+## We use the first 44 pairs of data to estimate the relationship. Based on a 
+## new curve, we can then predict its response using a functional 
+## nonparametric regression
+fat_np_global <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
   		data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)
 
-# Point forecast
-R> fat_np_global$pointforecast
+## Point forecast
+fat_np_global$pointforecast
 
-# 95% prediction interval
-R> fat_np_global$PI
+## 95% prediction interval
+fat_np_global$PI
 
-# Using a functional nonparametric regression with localised bandwidths
-R> fat_np_local <- bayMCMC_np_local(data_x = specurves[1:44,], data_y = fat[1:44], 
-			data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)
+## Using a functional nonparametric regression with localised bandwidths
+fat_np_local <- bayMCMC_np_local(data_x = specurves[1:44,], data_y = fat[1:44], 
+  data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)
 
-# Point forecast
-R> fat_np_local$pointforecast
+## Point forecast
+fat_np_local$pointforecast
 
-# 95% prediction interval
-R> fat_np_local$PI
+## 95% prediction interval
+fat_np_local$PI
 
-# Using a semi-functional partial linear regression with a global bandwidth
-R> fat_semi_global <- bayMCMC_semi_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+## Using a semi-functional partial linear regression with a global bandwidth
+fat_semi_global <- bayMCMC_semi_global(data_x = specurves[1:44,], data_y = fat[1:44], 
 	data_xnew = specurves[45,], Xvar = cbind(protein[1:44], moisture[1:44]), 
 	Xvarpred = matrix(c(protein[45], moisture[45]), nrow=1), 
 	range.grid=c(0,pi), q=2, nknot=20)
 
-# Point forecast
-R> fat_semi_global$pointforecast
+## Point forecast
+fat_semi_global$pointforecast
 
-# 95% prediction interval
-R> fat_semi_global$PI
+## 95% prediction interval
+fat_semi_global$PI
 
-# Using a semi-functional partial linear regression with localised bandwidths
-R> fat_semi_local <- bayMCMC_semi_local(data_x = specurves[1:44,], data_y = fat[1:44], 
+## Using a semi-functional partial linear regression with localised bandwidths
+fat_semi_local <- bayMCMC_semi_local(data_x = specurves[1:44,], data_y = fat[1:44], 
 	data_xnew = specurves[45,], Xvar = cbind(protein[1:44], moisture[1:44]),
 	Xvarpred = matrix(c(protein[45], moisture[45]), nrow=1), 
 	range.grid=c(0,pi), q=2, nknot=20)
 
-# Point forecast
-R> fat_semi_local$pointforecast
+## Point forecast
+fat_semi_local$pointforecast
 
-# 95% prediction interval
-R> fat_semi_local$PI
-\end{Verbatim}
+## 95% prediction interval
+fat_semi_local$PI
+@
 
 Among the semi-metrics based on first derivative, second derivative, functional principal component analysis with three retained principal components, we found that the semi-metric based on the second derivative has the largest marginal likelihood and smallest prediction error in this example. As a demonstration with a global bandwidth in the functional nonparametric regression, the LMLs of the three semi-metrics are computed as follows:
-\begin{Verbatim}[fontsize=\small]
-R> fat_np_global_d1 <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
-  		data_xnew = specurves[45,], range.grid=c(0,pi), q=1, nknot=20)
-                                   
-R> fat_np_global_d2 <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
-			data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)                                   
-                                   
-R> fat_np_global_pca <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
-			data_xnew = specurves[45,], semimetric="pca", q=3)
 
-R> c(fat_np_global_d1$mlikeres, fat_np_global_d2$mlikeres, fat_np_global_pca$mlikeres)
-\end{Verbatim}
+<<eval=FALSE,echo=TRUE,keep.source=TRUE,results=hide>>=
+fat_np_global_d1 <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+  data_xnew = specurves[45,], range.grid=c(0,pi), q=1, nknot=20)
+                                   
+fat_np_global_d2 <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+	data_xnew = specurves[45,], range.grid=c(0,pi), q=2, nknot=20)                                   
+                                   
+fat_np_global_pca <- bayMCMC_np_global(data_x = specurves[1:44,], data_y = fat[1:44], 
+	data_xnew = specurves[45,], semimetric="pca", q=3)
+
+c(fat_np_global_d1$mlikeres, fat_np_global_d2$mlikeres, fat_np_global_pca$mlikeres)
+@
 
 \section{Conclusion}
 

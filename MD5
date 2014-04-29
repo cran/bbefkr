@@ -1,5 +1,7 @@
-1a2b78e2431820f5b960f7cd6ea73c3c *CHANGELOG
-35fe66d216e62f55db54b1e4c3be6d99 *DESCRIPTION
+62849ae0e718916dbb0520aa4f4734dd *CHANGELOG
+4b509c148878feca54410e76e5103523 *DESCRIPTION
+eb723b61539feef013de476e68b5c50a *GPL-2
+d32239bcb673463ab874e80d47fae504 *GPL-3
 e7534df5b6de9c3ce563f33d215fd336 *NAMESPACE
 4b8860e8d4c6a762dcfc9315fb9f13a4 *R/SIF.R
 bf486600e3f063b288d1440fe33a90e8 *R/bayMCMC_np_global.R
@@ -36,7 +38,7 @@ e9a4270ea96a44e9d8aefa21b1e98d5d *R/simstrongskew.R
 a3fb11460fed495ffd435b6e341f6ae1 *R/simtrimodal.R
 a7393bcd8efd1b6da33bb587ddc73bc9 *R/simulate_error.R
 9a3a1928eb01d773ebd39eaa6a34252c *R/symsolve.R
-ae638cc591287d25b82fa6b31a94c2ed *build/vignette.rds
+72540229dfb02ba90da333ceafd698f6 *build/vignette.rds
 7516f7d9c46347bb6ab173575b74b907 *data/Xvar.rda
 0ac0424e66da4b8c65af7d2b1add9826 *data/fat.rda
 a5e51a7a0f1a5a8951d33d1e9c7a87c3 *data/moisture.rda
@@ -48,8 +50,10 @@ a5e51a7a0f1a5a8951d33d1e9c7a87c3 *data/moisture.rda
 3b89c6ee555c9895d971bde9fe4d7cd3 *data/specurves.rda
 ad19d06a6677e3c404d126707bf49764 *data/tau_normerr.rda
 b9db869d260d3cdbbe655267634a315e *data/tau_semierr.rda
-4d7e258cdc3cdcf0fb4d1f3e2dceabe1 *inst/doc/bbefkr.Rnw
-2d0b20a7f50c707e056fdd25bb77fab3 *inst/doc/bbefkr.pdf
+aee08930e352325c769cb87b9d5ffde3 *inst/CITATION
+31a2a4d358a89b723be1139e89e2b169 *inst/doc/bbefkr.R
+9c83c87fd0eb3ee24f95ff1f0dccbe45 *inst/doc/bbefkr.Rnw
+873e16f947fd58620122dc167d6ecba2 *inst/doc/bbefkr.pdf
 7655fe3970a07dec4dd6655dc595f633 *man/SIF.Rd
 1d505a5b230c724636521108773fc8bd *man/Xvar.Rd
 a878dc7b127f1122bda296427228d8aa *man/bayMCMC_np_global.Rd
@@ -67,8 +71,8 @@ bc906546635ad2728084c2a10d3dfc3e *man/logpriors_admkr.Rd
 733b458131f981ddd089b481d07d0352 *man/simcurve_smooth_normerr.Rd
 ad0a5bd1f145caa2489159729a2bfa53 *man/simulate_error.Rd
 6c633a0acb9ab2bffc3df02b05492ae9 *man/specurves.Rd
-7ff5f7e35666899323bb587774f4cf4d *vignettes/Shang.bib
-4d7e258cdc3cdcf0fb4d1f3e2dceabe1 *vignettes/bbefkr.Rnw
+77f8c97b4471c924db46e7a2251572be *vignettes/Shang.bib
+9c83c87fd0eb3ee24f95ff1f0dccbe45 *vignettes/bbefkr.Rnw
 0d870450b735af3150d67b6b39b237dc *vignettes/roughcurves.pdf
 3c8d50260ce41dc3aab70730dfa74d21 *vignettes/smoothcurves.pdf
 b599106548f1e612643be5a5c19cca9a *vignettes/spec.pdf
